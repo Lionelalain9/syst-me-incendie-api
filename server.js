@@ -6,6 +6,16 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000;
 
+// === DEBUG : Afficher les variables d'environnement ===
+console.log('=== VÉRIFICATION DES VARIABLES ===');
+console.log('DB_HOST:', process.env.DB_HOST);
+console.log('DB_PORT:', process.env.DB_PORT);
+console.log('DB_USER:', process.env.DB_USER);
+console.log('DB_PASSWORD:', process.env.DB_PASSWORD ? '********' : 'NON DÉFINI');
+console.log('DB_NAME:', process.env.DB_NAME);
+console.log('PORT:', process.env.PORT);
+console.log('===================================');
+
 app.use(cors());
 app.use(express.json());
 
@@ -89,4 +99,5 @@ app.get('/api/historique', async (req, res) => {
 
 app.listen(port, () => {
     console.log(`Serveur démarré sur http://localhost:${port}`);
+});
 });
