@@ -112,21 +112,7 @@ app.get('/api/creer-table', async (req, res) => {
         res.json({ error: error.message });
     }
 });
-// Route temporaire pour créer la table PostgreSQL
-app.get('/api/creer-table', async (req, res) => {
-    try {
-        await db.query(`CREATE TABLE IF NOT EXISTS donnees (
-            id SERIAL PRIMARY KEY,
-            temperature FLOAT,
-            gaz INT,
-            flamme BOOLEAN,
-            date_heure TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )`);
-        res.json({ message: "Table créée avec succès" });
-    } catch (error) {
-        res.json({ error: error.message });
-    }
-});
+
 app.listen(port, () => {
     console.log(`Serveur démarré sur http://localhost:${port}`);
 });
