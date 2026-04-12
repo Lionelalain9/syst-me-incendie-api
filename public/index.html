@@ -2,238 +2,383 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Système de Détection Incendie — Connexion</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="SDI"/>
+  <meta name="theme-color" content="#e65c00"/>
+  <title>Système de Détection Incendie</title>
   <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --fire1:   #e65c00;
-      --fire2:   #f9a825;
-      --ember:   #ff3d00;
-      --green:   #00e676;
-      --bg:      #0c0a06;
-      --surface: #1a1208;
-      --surface2:#231808;
-      --border:  #2e1f0a;
-      --text:    #f5e6d0;
-      --muted:   #7a5c38;
-      --radius:  14px;
-      --error:   #ff5252;
+      --fire1:    #e65c00;
+      --fire2:    #f9a825;
+      --ember:    #ff3d00;
+      --green:    #00e676;
+      --bg:       #0c0a06;
+      --surface:  #1a1208;
+      --surface2: #231808;
+      --border:   #2e1f0a;
+      --text:     #f5e6d0;
+      --muted:    #7a5c38;
+      --radius:   14px;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Exo 2', sans-serif;
-      background: var(--bg); color: var(--text);
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
     }
     body::before {
-      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
       background:
-        radial-gradient(ellipse 60% 50% at 50% 0%, rgba(230,92,0,.15) 0%, transparent 60%),
-        radial-gradient(ellipse 40% 30% at 80% 90%, rgba(249,168,37,.07) 0%, transparent 50%);
+        radial-gradient(ellipse 70% 50% at 50% 0%, rgba(230,92,0,.12) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 80% 90%, rgba(249,168,37,.06) 0%, transparent 50%);
     }
 
-    .screen { display: none; position: relative; z-index: 1; }
-    .screen.active { display: block; }
+    .container { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 1rem; }
 
-    #screen-auth {
-      min-height: 100vh;
-      display: flex; align-items: center; justify-content: center;
-      padding: 1.5rem;
-    }
-
-    .auth-box {
-      width: 100%; max-width: 420px;
+    header {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 2.5rem 2rem;
-      position: relative; overflow: hidden;
+      border-radius: var(--radius);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
     }
-    .auth-box::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-      background: linear-gradient(90deg, var(--fire1), var(--fire2), var(--fire1));
-    }
+    .logo h1 { font-size: 1.2rem; background: linear-gradient(135deg, var(--fire2), var(--fire1)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .logo p { font-family: 'Share Tech Mono', monospace; font-size: .6rem; color: var(--muted); }
 
-    .auth-logo {
-      text-align: center; margin-bottom: 2rem;
+    .user-info { display: flex; align-items: center; gap: 1rem; }
+    .user-name { font-weight: 600; }
+    .btn-logout {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: .4rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
     }
-    .auth-logo .fire-icon { font-size: 3rem; animation: flicker 2.5s infinite; display: block; margin-bottom: .5rem; }
-    @keyframes flicker { 0%,100%{opacity:1} 40%{opacity:.5} 80%{opacity:.3} }
-    .auth-logo h1 {
-      font-size: 1.1rem; font-weight: 900; letter-spacing: 1px;
-      background: linear-gradient(135deg, var(--fire2), var(--fire1));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .auth-logo p { font-size: .72rem; color: var(--muted); letter-spacing: 2px; margin-top: .3rem; font-family: 'Share Tech Mono', monospace; }
+    .btn-logout:hover { border-color: var(--fire1); color: var(--fire1); }
 
-    .auth-tabs {
-      display: flex; background: var(--surface2); border-radius: 10px;
-      padding: 4px; margin-bottom: 1.8rem; gap: 4px;
+    .banner {
+      display: none;
+      background: linear-gradient(90deg, var(--ember), var(--fire1), var(--ember));
+      background-size: 200%;
+      color: #fff;
+      text-align: center;
+      padding: .7rem;
+      border-radius: var(--radius);
+      margin-bottom: 1rem;
+      animation: slide-bg 1.5s linear infinite, blink .5s infinite;
     }
-    .auth-tab {
-      flex: 1; padding: .6rem; border-radius: 7px; border: none;
-      background: transparent; color: var(--muted);
-      font-family: 'Exo 2', sans-serif; font-size: .88rem; font-weight: 700;
-      cursor: pointer; transition: all .25s; letter-spacing: .5px;
+    @keyframes slide-bg { 0%{background-position:0%} 100%{background-position:200%} }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.7} }
+
+    .sensors-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
     }
-    .auth-tab.active {
+    .sensor-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.2rem;
+      text-align: center;
+    }
+    .sensor-card.alerte { border-color: var(--fire1); box-shadow: 0 0 20px rgba(230,92,0,.2); }
+    .sensor-card.feu { border-color: var(--ember); animation: tremor .1s infinite; }
+    @keyframes tremor { 0%,100%{transform:none} 50%{transform:translateX(2px)} }
+
+    .sc-val { font-family: 'Share Tech Mono', monospace; font-size: 2.5rem; font-weight: 700; }
+    .sc-val.danger { color: var(--ember); }
+    .sc-unit { font-size: .9rem; color: var(--muted); }
+    .sc-state { font-size: .75rem; margin-top: .5rem; }
+    .sc-state.ok { color: var(--green); }
+    .sc-state.warn { color: var(--fire2); }
+    .sc-state.bad { color: var(--ember); }
+
+    .flame-icon { font-size: 2.5rem; margin-bottom: .5rem; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      text-align: center;
+    }
+    .stat-val { font-family: 'Share Tech Mono', monospace; font-size: 1.8rem; font-weight: 700; }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    canvas { width: 100% !important; }
+
+    .hist-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .hist-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .btn-csv {
       background: linear-gradient(135deg, var(--fire1), var(--fire2));
-      color: #fff; box-shadow: 0 2px 12px rgba(230,92,0,.3);
+      border: none;
+      color: #fff;
+      padding: .4rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
     }
-
-    .auth-form { display: none; }
-    .auth-form.active { display: block; }
-
-    .form-group { margin-bottom: 1.1rem; }
-    .form-label {
-      display: block; font-size: .78rem; font-weight: 600;
-      color: var(--muted); margin-bottom: .4rem; letter-spacing: .5px;
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: .5rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-size: .7rem; }
+    .badge {
+      display: inline-block;
+      padding: .2rem .5rem;
+      border-radius: 5px;
+      font-size: .65rem;
+      font-weight: bold;
     }
-    .form-input {
-      width: 100%; padding: .75rem 1rem;
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 10px; color: var(--text);
-      font-family: 'Exo 2', sans-serif; font-size: .95rem;
-      outline: none;
-    }
-    .form-input:focus { border-color: var(--fire1); box-shadow: 0 0 0 3px rgba(230,92,0,.15); }
+    .badge.danger { background: rgba(255,61,0,.2); color: var(--ember); border: 1px solid var(--ember); }
+    .badge.warn { background: rgba(249,168,37,.2); color: var(--fire2); border: 1px solid var(--fire2); }
+    .badge.ok { background: rgba(0,230,118,.2); color: var(--green); border: 1px solid var(--green); }
 
-    .btn-auth {
-      width: 100%; padding: .85rem; border: none; border-radius: 11px;
-      background: linear-gradient(135deg, var(--fire1), var(--fire2));
-      color: #fff; font-family: 'Exo 2', sans-serif;
-      font-size: 1rem; font-weight: 700; letter-spacing: 1px;
-      cursor: pointer; transition: all .2s;
-      margin-top: .5rem;
-    }
-    .btn-auth:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(230,92,0,.45); }
+    .sync-info { text-align: center; font-size: .7rem; color: var(--muted); margin-top: 1rem; }
 
-    .auth-msg {
-      text-align: center; font-size: .82rem; color: var(--error);
-      margin-top: .8rem; min-height: 1.2rem;
+    @media (max-width: 768px) {
+      .sensors-grid, .stats-grid, .charts-grid { grid-template-columns: 1fr; }
     }
-    .auth-msg.success { color: var(--green); }
-
-    .spinner { width:20px; height:20px; border:2px solid var(--border); border-top-color:var(--fire1); border-radius:50%; animation:spin .7s linear infinite; margin:1rem auto; }
-    @keyframes spin { to{transform:rotate(360deg)} }
   </style>
 </head>
 <body>
-
-<div id="screen-auth" class="screen active">
-  <div class="auth-box">
-    <div class="auth-logo">
-      <span class="fire-icon">🔥</span>
-      <h1>SYSTÈME DE DÉTECTION INCENDIE</h1>
-      <p>PLATEFORME IoT — SURVEILLANCE CONNECTÉE</p>
+<div class="container">
+  <header>
+    <div class="logo">
+      <h1>⚠️ DÉTECTION INCENDIE</h1>
+      <p>SYSTÈME IoT — ESP32 — SURVEILLANCE</p>
     </div>
-
-    <div class="auth-tabs">
-      <button class="auth-tab active" onclick="switchTab('connexion')">Se connecter</button>
-      <button class="auth-tab" onclick="switchTab('inscription')">Créer un compte</button>
+    <div class="user-info">
+      <span class="user-name" id="user-name">--</span>
+      <button class="btn-logout" onclick="deconnecter()">Déconnexion</button>
     </div>
+  </header>
 
-    <div class="auth-form active" id="form-connexion">
-      <div class="form-group">
-        <label class="form-label">Adresse email</label>
-        <input type="email" class="form-input" id="login-email" placeholder="votre@email.com"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Mot de passe</label>
-        <input type="password" class="form-input" id="login-mdp" placeholder="••••••••"/>
-      </div>
-      <button class="btn-auth" onclick="seConnecter()">🔐 Se connecter</button>
-      <div class="auth-msg" id="msg-login"></div>
+  <div id="banner" class="banner">🔥 INCENDIE DÉTECTÉ — ÉVACUEZ IMMÉDIATEMENT 🔥</div>
+
+  <div class="sensors-grid">
+    <div class="sensor-card" id="card-temp">
+      <div class="sc-val" id="v-temp">--<span class="sc-unit">°C</span></div>
+      <div class="sc-state ok" id="s-temp">Chargement...</div>
     </div>
-
-    <div class="auth-form" id="form-inscription">
-      <div class="form-group">
-        <label class="form-label">Nom complet</label>
-        <input type="text" class="form-input" id="reg-nom" placeholder="Jean Dupont"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Adresse email</label>
-        <input type="email" class="form-input" id="reg-email" placeholder="votre@email.com"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Mot de passe (min. 8 caractères)</label>
-        <input type="password" class="form-input" id="reg-mdp" placeholder="••••••••"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Confirmer le mot de passe</label>
-        <input type="password" class="form-input" id="reg-mdp2" placeholder="••••••••"/>
-      </div>
-      <button class="btn-auth" onclick="sInscrire()">✅ Créer mon compte</button>
-      <div class="auth-msg" id="msg-register"></div>
+    <div class="sensor-card" id="card-gaz">
+      <div class="sc-val" id="v-gaz">--</div>
+      <div class="sc-state ok" id="s-gaz">Chargement...</div>
+    </div>
+    <div class="sensor-card" id="card-flamme">
+      <div class="flame-icon" id="f-icon">🟢</div>
+      <div class="sc-state ok" id="f-text">AUCUNE FLAMME</div>
     </div>
   </div>
+
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">🌡️ TEMP. MAX</div><div class="stat-val" id="st-tmax">--</div></div>
+    <div class="stat-card"><div class="stat-label">🔥 INCENDIES</div><div class="stat-val" id="st-inc">--</div></div>
+    <div class="stat-card"><div class="stat-label">💨 ALERTES GAZ</div><div class="stat-val" id="st-gaz">--</div></div>
+    <div class="stat-card"><div class="stat-label">🌡️ ALERTES TEMP</div><div class="stat-val" id="st-temp">--</div></div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card"><canvas id="chart-temp"></canvas></div>
+    <div class="chart-card"><canvas id="chart-gaz"></canvas></div>
+  </div>
+
+  <div class="hist-card">
+    <div class="hist-header">
+      <span>📜 HISTORIQUE DES MESURES</span>
+      <button class="btn-csv" onclick="exportCSV()">⬇ Export CSV</button>
+    </div>
+    <div style="overflow-x: auto;">
+      <table id="history-table">
+        <thead><tr><th>Date/Heure</th><th>Température</th><th>Gaz</th><th>Flamme</th><th>Statut</th></tr></thead>
+        <tbody id="history-body"><tr><td colspan="5"><div class="spinner"></div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="sync-info" id="sync-info">⟳ Synchronisation...</div>
 </div>
 
 <script>
   const API = 'https://sdi-api-0fsx.onrender.com';
+  let token = localStorage.getItem('sdi_token');
+  let user = JSON.parse(localStorage.getItem('sdi_user') || '{}');
+  let chartTemp, chartGaz, histData = [];
 
-  function switchTab(tab) {
-    document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='connexion')||(i===1&&tab==='inscription')));
-    document.getElementById('form-connexion').classList.toggle('active', tab==='connexion');
-    document.getElementById('form-inscription').classList.toggle('active', tab==='inscription');
+  if (!token) window.location.href = '/';
+
+  document.getElementById('user-name').innerHTML = user.nom || 'Utilisateur';
+
+  function deconnecter() {
+    localStorage.removeItem('sdi_token');
+    localStorage.removeItem('sdi_user');
+    window.location.href = '/';
   }
 
-  async function seConnecter() {
-    const email = document.getElementById('login-email').value.trim();
-    const mdp   = document.getElementById('login-mdp').value;
-    const msg   = document.getElementById('msg-login');
+  async function fetchAPI(url) {
+    const r = await fetch(API + url, { headers: { 'Authorization': 'Bearer ' + token } });
+    if (r.status === 401) { deconnecter(); return null; }
+    return r.json();
+  }
 
-    if (!email || !mdp) { msg.textContent = 'Veuillez remplir tous les champs.'; return; }
+  async function chargerDerniere() {
+    const d = await fetchAPI('/api/dernieres-donnees');
+    if (!d || !d.id) return;
 
-    try {
-      const r = await fetch(`${API}/api/auth/connexion`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, mot_de_passe: mdp })
-      });
-      const d = await r.json();
-      if (!r.ok) { msg.textContent = d.erreur || 'Erreur de connexion.'; return; }
+    const temp = parseFloat(d.temperature), gaz = parseInt(d.gaz), flamme = d.flamme === true || d.flamme == 1;
 
-      localStorage.setItem('sdi_token', d.token);
-      localStorage.setItem('sdi_user', JSON.stringify(d.user));
-      msg.textContent = '✅ Connexion réussie !';
-      msg.classList.add('success');
-      setTimeout(() => { window.location.href = '/dashboard.html'; }, 1000);
-    } catch(e) {
-      msg.textContent = 'Serveur inaccessible.';
+    document.getElementById('v-temp').innerHTML = temp.toFixed(1) + '<span class="sc-unit">°C</span>';
+    document.getElementById('v-gaz').innerHTML = gaz;
+
+    const sTemp = document.getElementById('s-temp');
+    const sGaz = document.getElementById('s-gaz');
+    const cardTemp = document.getElementById('card-temp');
+    const cardGaz = document.getElementById('card-gaz');
+    const cardFlamme = document.getElementById('card-flamme');
+    const fIcon = document.getElementById('f-icon');
+    const fText = document.getElementById('f-text');
+    const banner = document.getElementById('banner');
+
+    if (temp >= 50) {
+      sTemp.innerHTML = '⚠️ DANGER CRITIQUE'; sTemp.className = 'sc-state bad';
+      cardTemp.classList.add('alerte');
+    } else if (temp >= 40) {
+      sTemp.innerHTML = '⚡ Température élevée'; sTemp.className = 'sc-state warn';
+      cardTemp.classList.add('alerte');
+    } else {
+      sTemp.innerHTML = '✅ Normale'; sTemp.className = 'sc-state ok';
+      cardTemp.classList.remove('alerte');
+    }
+
+    if (gaz >= 500) {
+      sGaz.innerHTML = '⚠️ FUITE DÉTECTÉE'; sGaz.className = 'sc-state bad';
+      cardGaz.classList.add('alerte');
+    } else if (gaz >= 300) {
+      sGaz.innerHTML = '⚡ Niveau élevé'; sGaz.className = 'sc-state warn';
+      cardGaz.classList.add('alerte');
+    } else {
+      sGaz.innerHTML = '✅ Normal'; sGaz.className = 'sc-state ok';
+      cardGaz.classList.remove('alerte');
+    }
+
+    if (flamme) {
+      fIcon.innerHTML = '🔥';
+      fText.innerHTML = 'FLAMME DÉTECTÉE !'; fText.className = 'sc-state bad';
+      cardFlamme.classList.add('feu');
+      banner.style.display = 'block';
+    } else {
+      fIcon.innerHTML = '🟢';
+      fText.innerHTML = 'AUCUNE FLAMME'; fText.className = 'sc-state ok';
+      cardFlamme.classList.remove('feu');
+      banner.style.display = 'none';
+    }
+
+    document.getElementById('sync-info').innerHTML = '⟳ Dernière sync : ' + new Date().toLocaleTimeString('fr-FR');
+  }
+
+  async function chargerStats() {
+    const s = await fetchAPI('/api/statistiques');
+    if (s) {
+      document.getElementById('st-inc').innerHTML = s.incendie || 0;
+      document.getElementById('st-gaz').innerHTML = s.gaz || 0;
+      document.getElementById('st-temp').innerHTML = s.temp || 0;
     }
   }
 
-  async function sInscrire() {
-    const nom  = document.getElementById('reg-nom').value.trim();
-    const email= document.getElementById('reg-email').value.trim();
-    const mdp  = document.getElementById('reg-mdp').value;
-    const mdp2 = document.getElementById('reg-mdp2').value;
-    const msg  = document.getElementById('msg-register');
-
-    if (!nom||!email||!mdp) { msg.textContent = 'Veuillez remplir tous les champs.'; return; }
-    if (mdp !== mdp2) { msg.textContent = 'Les mots de passe ne correspondent pas.'; return; }
-    if (mdp.length < 8) { msg.textContent = 'Mot de passe trop court (min. 8).'; return; }
-
-    try {
-      const r = await fetch(`${API}/api/auth/inscription`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ nom, email, mot_de_passe: mdp })
-      });
-      const d = await r.json();
-      if (!r.ok) { msg.textContent = d.erreur || 'Erreur inscription.'; return; }
-
-      localStorage.setItem('sdi_token', d.token);
-      localStorage.setItem('sdi_user', JSON.stringify(d.user));
-      msg.textContent = `✅ Bienvenue ${nom} !`;
-      msg.classList.add('success');
-      setTimeout(() => { window.location.href = '/dashboard.html'; }, 1000);
-    } catch(e) {
-      msg.textContent = 'Serveur inaccessible.';
+  async function chargerHistorique() {
+    histData = await fetchAPI('/api/historique');
+    const tbody = document.getElementById('history-body');
+    if (!histData || histData.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5">Aucune donnée</td></tr>';
+      return;
     }
+
+    tbody.innerHTML = histData.map(d => {
+      const temp = parseFloat(d.temperature), gaz = parseInt(d.gaz), flamme = d.flamme === true || d.flamme == 1;
+      const cls = flamme ? 'danger' : (gaz >= 500 || temp >= 50) ? 'warn' : 'ok';
+      const label = flamme ? 'INCENDIE' : (gaz >= 500 || temp >= 50) ? 'ALERTE' : 'NORMAL';
+      const date = new Date(d.date_heure).toLocaleString('fr-FR');
+      return `<tr><td>${date}</td><td>${temp.toFixed(1)} °C</td><td>${gaz}</td><td>${flamme ? '🔥 OUI' : '🟢 NON'}</td><td><span class="badge ${cls}">${label}</span></td></tr>`;
+    }).join('');
+
+    // Mettre à jour les graphiques
+    const reversed = [...histData].reverse().slice(-30);
+    const labels = reversed.map(d => new Date(d.date_heure).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}));
+    const temps = reversed.map(d => parseFloat(d.temperature));
+    const gazs = reversed.map(d => d.gaz);
+
+    if (chartTemp) chartTemp.destroy();
+    if (chartGaz) chartGaz.destroy();
+
+    chartTemp = new Chart(document.getElementById('chart-temp'), {
+      type: 'line', data: { labels, datasets: [{ label: 'Température (°C)', data: temps, borderColor: '#e65c00', backgroundColor: '#e65c0018', fill: true, tension: 0.3 }] }
+    });
+    chartGaz = new Chart(document.getElementById('chart-gaz'), {
+      type: 'line', data: { labels, datasets: [{ label: 'Gaz (ppm)', data: gazs, borderColor: '#f9a825', backgroundColor: '#f9a82518', fill: true, tension: 0.3 }] }
+    });
+
+    // Temp max
+    const maxTemp = Math.max(...temps);
+    document.getElementById('st-tmax').innerHTML = maxTemp.toFixed(1) + '°';
   }
+
+  function exportCSV() {
+    if (!histData || histData.length === 0) return;
+    const headers = ['ID', 'Date/Heure', 'Température (°C)', 'Gaz', 'Flamme', 'Statut'];
+    const rows = histData.map(d => {
+      const t = parseFloat(d.temperature), g = parseInt(d.gaz), f = d.flamme === true || d.flamme == 1;
+      const s = f ? 'INCENDIE' : (g >= 500 || t >= 50) ? 'ALERTE' : 'NORMAL';
+      return [d.id, new Date(d.date_heure).toLocaleString('fr-FR'), t.toFixed(1), g, f ? 'OUI' : 'NON', s].join(',');
+    });
+    const blob = new Blob(['\uFEFF' + [headers.join(','), ...rows].join('\n')], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `incendie_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+  }
+
+  chargerDerniere();
+  chargerStats();
+  chargerHistorique();
+  setInterval(chargerDerniere, 5000);
+  setInterval(chargerStats, 15000);
 </script>
 </body>
 </html>
