@@ -37,8 +37,8 @@
     /* ══════════════════════════════════════
        ÉCRANS (auth / dashboard)
     ══════════════════════════════════════ */
-    .screen { display: none; position: relative; z-index: 1; }
-    .screen.active { display: block; }
+    .screen { display: none !important; position: relative; z-index: 1; } .screen.active { display: block !important; }
+    
 
     /* ══════════════════════════════════════
        PAGE AUTH
@@ -596,8 +596,8 @@
   //   AFFICHER DASHBOARD
   // ═══════════════════════════════════════════
   function afficherDashboard() {
-    document.getElementById('screen-auth').classList.remove('active');
-    document.getElementById('screen-dashboard').classList.add('active');
+    document.getElementById('screen-auth').style.display = 'none'; document.getElementById('screen-auth').classList.remove('active');
+    document.getElementById('screen-dashboard').classList.add('active'); document.getElementById('screen-dashboard').style.display = 'block'; window.scrollTo(0,0);
 
     // Infos utilisateur
     document.getElementById('user-name').textContent = userData.nom || 'Utilisateur';
