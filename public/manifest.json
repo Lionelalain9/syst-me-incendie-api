@@ -1,0 +1,20 @@
+{
+  "name": "Système de Détection Incendie",
+  "short_name": "Détection Incendie",
+  "description": "Surveillance incendie connectée — ESP32 IoT",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0c0a06",
+  "theme_color": "#e65c00",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='36' fill='%230c0a06'/><rect width='192' height='2' y='100' fill='%23e65c00' opacity='.3'/><text y='130' font-size='110' text-anchor='middle' x='96'>🔥</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities"],
+  "lang": "fr"
+}

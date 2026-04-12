@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="SDI"/>
+  <meta name="theme-color" content="#e65c00"/>
+  <link rel="manifest" href="manifest.json"/>
+  <title>Système de Détection Incendie</title>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --fire1:    #e65c00;
+      --fire2:    #f9a825;
+      --fire3:    #ff6b00;
+      --ember:    #ff3d00;
+      --green:    #00e676;
+      --blue:     #40c4ff;
+      --bg:       #0c0a06;
+      --bg2:      #120e08;
+      --surface:  #1a1208;
+      --surface2: #231808;
+      --border:   #2e1f0a;
+      --text:     #f5e6d0;
+      --muted:    #7a5c38;
+      --radius:   14px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%; overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Exo 2', sans-serif;
+      user-select: none;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 70% 50% at 50% 0%, rgba(230,92,0,.12) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 80% 90%, rgba(249,168,37,.06) 0%, transparent 50%);
+    }
+
+    #app {
+      display: flex; flex-direction: column;
+      height: 100vh; height: 100dvh;
+      overflow: hidden; position: relative; z-index: 1;
+    }
+
+    #banner {
+      display: none; flex-shrink: 0;
+      background: linear-gradient(90deg, var(--ember), var(--fire1), var(--ember));
+      background-size: 200% 100%;
+      color: #fff; text-align: center;
+      padding: .55rem; font-weight: 700;
+      font-size: .82rem; letter-spacing: 2px;
+      animation: slide-bg 1.5s linear infinite, blink .5s infinite;
+    }
+    @keyframes slide-bg { 0%{background-position:0%} 100%{background-position:200%} }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.7} }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: .9rem 1.2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+      position: relative;
+    }
+    header::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--fire1), var(--fire2), var(--fire1), transparent);
+    }
+
+    .logo {
+      display: flex; flex-direction: column;
+    }
+    .logo-main {
+      font-size: .95rem; font-weight: 900; letter-spacing: 1px;
+      background: linear-gradient(135deg, var(--fire2), var(--fire1));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+    .logo-sub {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .55rem; color: var(--muted); letter-spacing: 2px; margin-top: .2rem;
+    }
+
+    .conn-pill {
+      display: flex; align-items: center; gap: .4rem;
+      font-family: 'Share Tech Mono', monospace; font-size: .6rem; letter-spacing: 1px;
+      padding: .28rem .75rem; border-radius: 999px; border: 1px solid;
+      transition: all .3s;
+    }
+    .conn-pill.ok     { border-color: var(--green); color: var(--green); }
+    .conn-pill.warn   { border-color: var(--fire2); color: var(--fire2); animation: pulse .7s infinite; }
+    .conn-pill.off    { border-color: var(--muted); color: var(--muted); }
+    .conn-pill.danger { border-color: var(--ember); color: var(--ember); animation: pulse .4s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .cdot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+    #scroll {
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+    #scroll::-webkit-scrollbar { display: none; }
+
+    .page { display: none; padding: 1rem; animation: fadein .2s ease; }
+    .page.active { display: block; }
+    @keyframes fadein { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+    .section-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .6rem; color: var(--muted); letter-spacing: 2.5px;
+      margin-bottom: .7rem; padding-left: .2rem;
+    }
+
+    .sensors-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: .75rem;
+    }
+
+    .sensor-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem .9rem;
+      position: relative; overflow: hidden;
+      transition: border-color .3s, box-shadow .3s;
+    }
+    .sensor-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--fire1), var(--fire2));
+      transform: scaleX(0); transform-origin: left; transition: transform .4s;
+    }
+    .sensor-card.alerte { border-color: var(--fire1); box-shadow: 0 0 18px rgba(230,92,0,.2); }
+    .sensor-card.alerte::before { transform: scaleX(1); }
+    .sensor-card.warn-card { border-color: var(--fire2); box-shadow: 0 0 12px rgba(249,168,37,.15); }
+
+    .sc-icon { font-size: 1.5rem; margin-bottom: .4rem; display: block; }
+    .sc-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .55rem; color: var(--muted); letter-spacing: 1.5px; margin-bottom: .35rem;
+    }
+    .sc-value {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.9rem; font-weight: 700; line-height: 1; color: var(--text);
+      transition: color .3s;
+    }
+    .sc-value.danger { color: var(--ember); }
+    .sc-value.warn   { color: var(--fire2); }
+    .sc-unit { font-size: .7rem; color: var(--muted); }
+    .sc-state { font-size: .72rem; font-weight: 600; margin-top: .35rem; }
+    .sc-state.ok   { color: var(--green); }
+    .sc-state.warn { color: var(--fire2); }
+    .sc-state.bad  { color: var(--ember); }
+
+    .sc-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: .55rem; }
+    .sc-bar-f { height:100%; border-radius:2px; background:var(--green); transition: width .6s ease, background .3s; }
+
+    .flame-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem 1.2rem;
+      display: flex; align-items: center; gap: 1rem;
+      margin-bottom: .75rem; position: relative; overflow: hidden;
+      transition: border-color .3s, box-shadow .3s;
+    }
+    .flame-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--fire1), var(--fire2));
+      transform: scaleX(0); transform-origin: left; transition: transform .4s;
+    }
+    .flame-card.fire {
+      border-color: var(--ember);
+      box-shadow: 0 0 24px rgba(255,61,0,.25);
+      animation: tremor .1s infinite;
+    }
+    .flame-card.fire::before { transform: scaleX(1); }
+    @keyframes tremor { 0%,100%{transform:none} 50%{transform:translateX(2px)} }
+
+    .flame-emoji { font-size: 3rem; flex-shrink: 0; transition: transform .3s; }
+    .flame-emoji.on { animation: dance .35s infinite alternate; }
+    @keyframes dance { from{transform:scale(1.05) rotate(-3deg)} to{transform:scale(1.2) rotate(3deg)} }
+
+    .flame-info .fi-label {
+      font-family:'Share Tech Mono',monospace; font-size:.58rem; color:var(--muted); letter-spacing:1.5px;
+    }
+    .flame-info .fi-val { font-size:1.1rem; font-weight:700; margin-top:.2rem; }
+    .flame-info .fi-val.ok  { color: var(--green); }
+    .flame-info .fi-val.bad { color: var(--ember); }
+
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(2,1fr); gap: .75rem; margin-bottom: .75rem;
+    }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: .85rem 1rem;
+    }
+    .stat-label { font-family:'Share Tech Mono',monospace; font-size:.55rem; color:var(--muted); letter-spacing:1.5px; }
+    .stat-val { font-family:'Share Tech Mono',monospace; font-size:1.55rem; font-weight:700; margin-top:.2rem; }
+
+    .sync-row {
+      text-align:center; font-family:'Share Tech Mono',monospace;
+      font-size:.58rem; color:var(--muted); padding:.3rem 0 .5rem;
+    }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.1rem;
+      margin-bottom: .75rem;
+    }
+    .card-title {
+      font-family:'Share Tech Mono',monospace; font-size:.6rem; color:var(--muted);
+      letter-spacing:2px; margin-bottom:.9rem;
+    }
+
+    canvas { width:100%!important; }
+
+    .hist-item {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:.65rem 0; border-bottom:1px solid var(--border);
+    }
+    .hist-item:last-child { border-bottom:none; }
+    .hi-date { font-family:'Share Tech Mono',monospace; font-size:.65rem; color:var(--muted); }
+    .hi-vals { font-size:.85rem; font-weight:600; margin-top:.12rem; }
+    .hi-badge {
+      font-family:'Share Tech Mono',monospace; font-size:.58rem; font-weight:700;
+      padding:.18rem .55rem; border-radius:6px; border:1px solid; white-space:nowrap;
+    }
+    .hi-badge.ok     { border-color:var(--green); color:var(--green); background:rgba(0,230,118,.08); }
+    .hi-badge.warn   { border-color:var(--fire2); color:var(--fire2); background:rgba(249,168,37,.08); }
+    .hi-badge.danger { border-color:var(--ember); color:var(--ember); background:rgba(255,61,0,.1); }
+
+    .btn {
+      display:flex; align-items:center; justify-content:center; gap:.5rem;
+      width:100%; padding:.85rem; border-radius:12px; border:none;
+      font-family:'Exo 2',sans-serif; font-size:.9rem; font-weight:700;
+      cursor:pointer; transition:all .2s; letter-spacing:.5px;
+    }
+    .btn-fire {
+      background: linear-gradient(135deg, var(--fire1), var(--fire2));
+      color:#fff; box-shadow:0 4px 16px rgba(230,92,0,.3);
+    }
+    .btn-fire:active { transform:scale(.97); box-shadow:none; }
+    .btn-outline { background:transparent; border:1px solid var(--border); color:var(--text); }
+    .btn-outline:active { border-color:var(--fire1); color:var(--fire1); }
+    .btn-sm {
+      width:auto; padding:.38rem .9rem; font-size:.75rem; border-radius:8px;
+      background:linear-gradient(135deg,var(--fire1),var(--fire2));
+      color:#fff; border:none; font-family:'Exo 2',sans-serif; font-weight:700;
+      cursor:pointer;
+    }
+
+    .setting-row {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:.85rem 0; border-bottom:1px solid var(--border);
+    }
+    .setting-row:last-child { border-bottom:none; }
+    .setting-label { font-size:.9rem; font-weight:600; }
+    .setting-sub   { font-size:.72rem; color:var(--muted); margin-top:.12rem; }
+    .seuil-val {
+      font-family:'Share Tech Mono',monospace; font-weight:700; font-size:.88rem;
+      background:linear-gradient(135deg,var(--fire1),var(--fire2));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+
+    .toggle { position:relative; width:44px; height:24px; flex-shrink:0; }
+    .toggle input { opacity:0; width:0; height:0; }
+    .toggle-s {
+      position:absolute; inset:0; background:var(--border); border-radius:999px; cursor:pointer; transition:background .3s;
+    }
+    .toggle-s::before {
+      content:''; position:absolute; width:18px; height:18px; border-radius:50%;
+      background:#fff; top:3px; left:3px; transition:transform .3s;
+    }
+    .toggle input:checked + .toggle-s { background:var(--fire1); }
+    .toggle input:checked + .toggle-s::before { transform:translateX(20px); }
+
+    nav {
+      background: var(--surface);
+      border-top: 2px solid var(--border);
+      display:flex; flex-shrink:0;
+      padding-bottom: calc(env(safe-area-inset-bottom,0px) + .3rem);
+      position: relative;
+    }
+    nav::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:2px;
+      background: linear-gradient(90deg, transparent, var(--fire1), var(--fire2), var(--fire1), transparent);
+    }
+
+    .nav-btn {
+      flex:1; display:flex; flex-direction:column; align-items:center; gap:.18rem;
+      padding:.65rem .4rem .4rem;
+      border:none; background:transparent; color:var(--muted);
+      cursor:pointer; transition:color .2s;
+      font-family:'Exo 2',sans-serif; font-size:.58rem; font-weight:600; letter-spacing:.3px;
+    }
+    .nav-icon { font-size:1.3rem; transition:transform .2s; }
+    .nav-btn.active { color:var(--fire1); }
+    .nav-btn.active .nav-icon { transform:scale(1.15); }
+    .nav-btn:active .nav-icon { transform:scale(.88); }
+
+    #toast {
+      position:fixed; bottom:calc(76px + env(safe-area-inset-bottom,0px)); left:50%;
+      transform:translateX(-50%) translateY(12px);
+      background:var(--surface2); border:1px solid var(--border);
+      color:var(--text); padding:.55rem 1.1rem; border-radius:999px;
+      font-size:.8rem; white-space:nowrap; opacity:0;
+      transition:all .3s; z-index:500; pointer-events:none;
+    }
+    #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+    .spinner {
+      width:22px; height:22px; border:2px solid var(--border);
+      border-top-color:var(--fire1); border-radius:50%;
+      animation:spin .7s linear infinite; margin:1.5rem auto;
+    }
+    @keyframes spin { to{transform:rotate(360deg)} }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <div id="banner">🔥 INCENDIE DÉTECTÉ — ÉVACUEZ IMMÉDIATEMENT 🔥</div>
+
+  <header>
+    <div class="logo">
+      <div class="logo-main">⚠ DÉTECTION INCENDIE</div>
+      <div class="logo-sub">SYSTÈME IOT — ESP32 — SURVEILLANCE</div>
+    </div>
+    <div class="conn-pill ok" id="conn-pill">
+      <div class="cdot"></div>
+      <span id="conn-text">EN LIGNE</span>
+    </div>
+  </header>
+
+  <div id="scroll">
+
+    <div class="page active" id="page-home">
+
+      <div class="section-title">CAPTEURS EN TEMPS RÉEL</div>
+
+      <div class="sensors-grid">
+        <div class="sensor-card" id="card-temp">
+          <span class="sc-icon">🌡️</span>
+          <div class="sc-label">TEMPÉRATURE</div>
+          <div class="sc-value" id="v-temp">--<span class="sc-unit">°C</span></div>
+          <div class="sc-state ok" id="s-temp">--</div>
+          <div class="sc-bar"><div class="sc-bar-f" id="b-temp" style="width:0%"></div></div>
+        </div>
+        <div class="sensor-card" id="card-gaz">
+          <span class="sc-icon">💨</span>
+          <div class="sc-label">GAZ — MQ-2</div>
+          <div class="sc-value" id="v-gaz">--</div>
+          <div class="sc-state ok" id="s-gaz">--</div>
+          <div class="sc-bar"><div class="sc-bar-f" id="b-gaz" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <div class="flame-card" id="card-flamme">
+        <div class="flame-emoji" id="f-icon">🟢</div>
+        <div class="flame-info">
+          <div class="fi-label">DÉTECTEUR DE FLAMME</div>
+          <div class="fi-val ok" id="f-text">AUCUNE FLAMME DÉTECTÉE</div>
+        </div>
+      </div>
+
+      <div class="section-title">STATISTIQUES</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">TEMP. MAXIMALE</div>
+          <div class="stat-val" id="st-tmax" style="color:var(--ember)">--</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">INCENDIES</div>
+          <div class="stat-val" id="st-inc" style="color:var(--ember)">--</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">ALERTES GAZ</div>
+          <div class="stat-val" id="st-gaz2" style="color:var(--fire2)">--</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">ALERTES TEMP.</div>
+          <div class="stat-val" id="st-temp2" style="color:var(--fire1)">--</div>
+        </div>
+      </div>
+
+      <div class="sync-row" id="sync-time">En attente de données...</div>
+    </div>
+
+    <div class="page" id="page-charts">
+      <div class="card">
+        <div class="card-title">ÉVOLUTION TEMPÉRATURE (°C)</div>
+        <canvas id="ct" height="160"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-title">ÉVOLUTION GAZ — MQ-2</div>
+        <canvas id="cg" height="160"></canvas>
+      </div>
+    </div>
+
+    <div class="page" id="page-history">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem">
+          <div class="card-title" style="margin:0">100 DERNIÈRES MESURES</div>
+          <button class="btn-sm" onclick="exportCSV()">⬇ CSV</button>
+        </div>
+        <div id="hist-list"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <div class="page" id="page-settings">
+      <div class="card">
+        <div class="card-title">CONNEXION API</div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Serveur</div>
+            <div class="setting-sub">sdi-api-0fsx.onrender.com</div>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Actualisation auto</div>
+            <div class="setting-sub">Toutes les 5 secondes</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="tog-auto" checked onchange="toggleAuto(this)"/>
+            <span class="toggle-s"></span>
+          </label>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Notifications d'alerte</div>
+            <div class="setting-sub">Incendie & gaz critique</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="tog-notif" onchange="toggleNotif(this)"/>
+            <span class="toggle-s"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">SEUILS DE DÉCLENCHEMENT</div>
+        <div class="setting-row">
+          <div><div class="setting-label">🌡️ Température danger</div></div>
+          <div class="seuil-val">≥ 50 °C</div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">💨 Gaz critique (MQ-2)</div></div>
+          <div class="seuil-val">≥ 500</div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">🔥 Flamme</div></div>
+          <div class="seuil-val">DÉTECTÉE</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">À PROPOS</div>
+        <div class="setting-row">
+          <div><div class="setting-label">Application</div><div class="setting-sub">Système de Détection Incendie</div></div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">Version</div><div class="setting-sub">PWA v1.0 — IoT ESP32</div></div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">Statut réseau</div><div class="setting-sub" id="net-status">--</div></div>
+        </div>
+      </div>
+
+      <button class="btn btn-fire" onclick="forceRefresh()" style="margin-bottom:.75rem">🔄 Actualiser maintenant</button>
+      <button class="btn btn-outline" onclick="exportCSV()">⬇ Exporter l'historique CSV</button>
+    </div>
+
+  </div>
+
+  <nav>
+    <button class="nav-btn active" onclick="goTo('home',this)">
+      <span class="nav-icon">🏠</span>ACCUEIL
+    </button>
+    <button class="nav-btn" onclick="goTo('charts',this)">
+      <span class="nav-icon">📈</span>GRAPHIQUES
+    </button>
+    <button class="nav-btn" onclick="goTo('history',this)">
+      <span class="nav-icon">📋</span>HISTORIQUE
+    </button>
+    <button class="nav-btn" onclick="goTo('settings',this)">
+      <span class="nav-icon">⚙️</span>RÉGLAGES
+    </button>
+  </nav>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const API = 'https://sdi-api-0fsx.onrender.com';
+  let histData = [], notifOk = false, autoTimer = null;
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+  function goTo(page, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-'+page).classList.add('active');
+    btn.classList.add('active');
+    document.getElementById('scroll').scrollTop = 0;
+    if (page === 'history') chargerHistorique();
+    if (page === 'charts')  majGraphiques();
+  }
+
+  const mkChart = (id, color) => new Chart(document.getElementById(id).getContext('2d'), {
+    type: 'line',
+    data: { labels:[], datasets:[{ data:[], borderColor:color,
+      backgroundColor: ctx => {
+        const g = ctx.chart.ctx.createLinearGradient(0,0,0,200);
+        g.addColorStop(0, color+'44'); g.addColorStop(1, color+'00'); return g;
+      },
+      borderWidth:2, pointRadius:2.5, pointBackgroundColor:color, tension:.4, fill:true }]
+    },
+    options: {
+      responsive:true, animation:{duration:300},
+      plugins:{ legend:{display:false} },
+      scales:{
+        x:{ ticks:{color:'#7a5c38',font:{size:9,family:'Share Tech Mono'},maxTicksLimit:6}, grid:{color:'rgba(46,31,10,.8)'} },
+        y:{ ticks:{color:'#7a5c38',font:{size:9,family:'Share Tech Mono'}}, grid:{color:'rgba(46,31,10,.8)'} }
+      }
+    }
+  });
+
+  const cT = mkChart('ct','#e65c00');
+  const cG = mkChart('cg','#f9a825');
+
+  function majGraphiques() {
+    if (!histData.length) return;
+    const rev = [...histData].reverse().slice(-30);
+    const labels = rev.map(d => new Date(d.date_heure).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}));
+    cT.data.labels = labels; cT.data.datasets[0].data = rev.map(d=>parseFloat(d.temperature).toFixed(1)); cT.update();
+    cG.data.labels = labels; cG.data.datasets[0].data = rev.map(d=>d.gaz); cG.update();
+  }
+
+  async function chargerDerniere() {
+    try {
+      const r = await fetch(`${API}/api/dernieres-donnees`);
+      if (!r.ok) throw new Error();
+      const d = await r.json();
+      if (!d || !d.id) return;
+
+      const temp = parseFloat(d.temperature), gaz = parseInt(d.gaz);
+      const flamme = d.flamme==1||d.flamme===true;
+
+      document.getElementById('v-temp').innerHTML = `${temp.toFixed(1)}<span class="sc-unit">°C</span>`;
+      setBar('b-temp', Math.min(temp/80*100,100), temp>=50, temp>=40);
+      const st = document.getElementById('s-temp');
+      if (temp>=50)      { st.textContent='⚠ DANGER CRITIQUE'; st.className='sc-state bad'; }
+      else if (temp>=40) { st.textContent='⚡ Température élevée'; st.className='sc-state warn'; }
+      else               { st.textContent='✅ Normale'; st.className='sc-state ok'; }
+      setCard('card-temp','v-temp', temp>=50, temp>=40);
+
+      document.getElementById('v-gaz').textContent = gaz;
+      setBar('b-gaz', Math.min(gaz/1000*100,100), gaz>=500, gaz>=300);
+      const sg = document.getElementById('s-gaz');
+      if (gaz>=500)      { sg.textContent='⚠ FUITE DÉTECTÉE'; sg.className='sc-state bad'; }
+      else if (gaz>=300) { sg.textContent='⚡ Niveau élevé'; sg.className='sc-state warn'; }
+      else               { sg.textContent='✅ Normal'; sg.className='sc-state ok'; }
+      setCard('card-gaz','v-gaz', gaz>=500, gaz>=300);
+
+      const fi=document.getElementById('f-icon'), ft=document.getElementById('f-text'), fc=document.getElementById('card-flamme');
+      if (flamme) {
+        fi.textContent='🔥'; fi.className='flame-emoji on';
+        ft.textContent='🚨 FLAMME DÉTECTÉE !'; ft.className='fi-val bad';
+        fc.classList.add('fire');
+        if (notifOk) notif('🔥 INCENDIE DÉTECTÉ','Intervenez immédiatement !');
+      } else {
+        fi.textContent='🟢'; fi.className='flame-emoji';
+        ft.textContent='AUCUNE FLAMME DÉTECTÉE'; ft.className='fi-val ok';
+        fc.classList.remove('fire');
+      }
+
+      const pill=document.getElementById('conn-pill'), ct=document.getElementById('conn-text');
+      document.getElementById('banner').style.display = flamme ? 'block' : 'none';
+      if (flamme)              { pill.className='conn-pill danger'; ct.textContent='INCENDIE'; }
+      else if (temp>=50||gaz>=500) { pill.className='conn-pill warn'; ct.textContent='ALERTE'; }
+      else                     { pill.className='conn-pill ok'; ct.textContent='EN LIGNE'; }
+
+      document.getElementById('net-status').textContent = 'Connecté — Render Cloud';
+      document.getElementById('sync-time').textContent = '⟳ Dernière sync : '+new Date().toLocaleTimeString('fr-FR');
+    } catch(e) {
+      document.getElementById('conn-pill').className='conn-pill off';
+      document.getElementById('conn-text').textContent='HORS LIGNE';
+      document.getElementById('net-status').textContent='Serveur inaccessible';
+    }
+  }
+
+  async function chargerStats() {
+    try {
+      const r = await fetch(`${API}/api/statistiques`);
+      const s = await r.json();
+      document.getElementById('st-inc').textContent   = s.incendie??'--';
+      document.getElementById('st-gaz2').textContent  = s.gaz??'--';
+      document.getElementById('st-temp2').textContent = s.temp??'--';
+      if (histData.length) {
+        const temps = histData.map(d=>parseFloat(d.temperature));
+        document.getElementById('st-tmax').textContent = Math.max(...temps).toFixed(1)+'°';
+      }
+    } catch(e){}
+  }
+
+  async function chargerHistorique() {
+    try {
+      const r = await fetch(`${API}/api/historique`);
+      histData = await r.json();
+      const list = document.getElementById('hist-list');
+      if (!histData.length) { list.innerHTML='<p style="color:var(--muted);text-align:center;padding:1.5rem">Aucune donnée</p>'; return; }
+      list.innerHTML = histData.map(d => {
+        const temp=parseFloat(d.temperature), gaz=parseInt(d.gaz), flamme=d.flamme==1||d.flamme===true;
+        const cls=flamme?'danger':(gaz>=500||temp>=50)?'warn':'ok';
+        const label=flamme?'INCENDIE':(gaz>=500||temp>=50)?'ALERTE':'NORMAL';
+        const date=new Date(d.date_heure).toLocaleString('fr-FR');
+        return `<div class="hist-item">
+          <div><div class="hi-date">${date}</div>
+          <div class="hi-vals">🌡 ${temp.toFixed(1)}°C &nbsp;💨 ${gaz} &nbsp;${flamme?'🔥':'🟢'}</div></div>
+          <span class="hi-badge ${cls}">${label}</span>
+        </div>`;
+      }).join('');
+      chargerStats(); majGraphiques();
+    } catch(e) {}
+  }
+
+  function exportCSV() {
+    if (!histData.length) { toast('Aucune donnée à exporter'); return; }
+    const h = ['ID','Date/Heure','Température (°C)','Gaz','Flamme','Statut'];
+    const rows = histData.map(d => {
+      const t=parseFloat(d.temperature), g=parseInt(d.gaz), f=d.flamme==1||d.flamme===true;
+      const s=f?'INCENDIE':(g>=500||t>=50)?'ALERTE':'NORMAL';
+      return [d.id,`"${new Date(d.date_heure).toLocaleString('fr-FR')}"`,t.toFixed(1),g,f?'OUI':'NON',s].join(',');
+    });
+    const blob=new Blob(['\uFEFF'+[h.join(','),...rows].join('\n')],{type:'text/csv;charset=utf-8;'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download=`detection_incendie_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click(); toast('✅ Export CSV téléchargé !');
+  }
+
+  function setBar(id, pct, danger, warn) {
+    const el=document.getElementById(id); el.style.width=pct+'%';
+    el.style.background=danger?'var(--ember)':warn?'var(--fire2)':'var(--green)';
+  }
+  function setCard(cardId, valId, danger, warn) {
+    const card=document.getElementById(cardId), val=document.getElementById(valId);
+    card.classList.toggle('alerte', danger); card.classList.toggle('warn-card', warn&&!danger);
+    val.classList.toggle('danger', danger); val.classList.toggle('warn', warn&&!danger);
+  }
+  function toast(msg) {
+    const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),2500);
+  }
+  function forceRefresh() { chargerDerniere(); chargerHistorique(); toast('🔄 Actualisation...'); }
+
+  function toggleAuto(cb) {
+    if (cb.checked) { autoTimer=setInterval(chargerDerniere,5000); toast('✅ Auto-refresh activé'); }
+    else { clearInterval(autoTimer); toast('⏸ Auto-refresh pausé'); }
+  }
+  function toggleNotif(cb) {
+    if (cb.checked && 'Notification' in window) {
+      Notification.requestPermission().then(p => {
+        notifOk = p==='granted';
+        toast(notifOk?'🔔 Notifications activées':'❌ Permission refusée');
+        if (!notifOk) cb.checked=false;
+      });
+    } else { notifOk=false; toast('🔕 Notifications désactivées'); }
+  }
+  function notif(title, body) {
+    if (notifOk && Notification.permission==='granted')
+      new Notification(title,{body,vibrate:[200,100,400]});
+  }
+
+  chargerDerniere(); chargerHistorique();
+  autoTimer = setInterval(chargerDerniere, 5000);
+  setInterval(chargerStats, 15000);
+  window.addEventListener('online',  ()=>{ toast('✅ Connexion rétablie'); chargerDerniere(); });
+  window.addEventListener('offline', ()=>toast('⚠️ Connexion perdue'));
+</script>
+</body>
+</html>
