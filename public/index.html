@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Système de Détection Incendie — Connexion</title>
+  <title>SIDIRT — Système Intelligent de Détection d'Incendie en Temps Réel</title>
   <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -21,6 +21,35 @@
       --radius:  14px;
       --error:   #ff5252;
     }
+    .flame-svg-wrap {
+      display: flex; justify-content: center; margin-bottom: .8rem;
+      filter: drop-shadow(0 0 18px rgba(255,109,0,.7));
+      animation: flame-pulse 1.8s ease-in-out infinite;
+    }
+    .flame-svg { width: 70px; height: 88px; }
+    .flame-outer { animation: flicker-out 1.2s ease-in-out infinite alternate; transform-origin: center bottom; }
+    .flame-inner { animation: flicker-in 0.9s ease-in-out infinite alternate; transform-origin: center bottom; }
+    .flame-core  { animation: core-pulse 1s ease-in-out infinite alternate; }
+    @keyframes flame-pulse {
+      0%,100% { filter: drop-shadow(0 0 18px rgba(255,109,0,.7)); transform: scaleY(1); }
+      50%      { filter: drop-shadow(0 0 30px rgba(255,60,0,.9)); transform: scaleY(1.04); }
+    }
+    @keyframes flicker-out {
+      0%   { transform: scaleX(1) skewX(0deg); }
+      33%  { transform: scaleX(1.04) skewX(-2deg); }
+      66%  { transform: scaleX(0.97) skewX(1deg); }
+      100% { transform: scaleX(1.02) skewX(2deg); }
+    }
+    @keyframes flicker-in {
+      0%   { transform: scaleX(1) skewX(1deg); opacity:.9; }
+      50%  { transform: scaleX(1.06) skewX(-3deg); opacity:1; }
+      100% { transform: scaleX(0.95) skewX(2deg); opacity:.85; }
+    }
+    @keyframes core-pulse {
+      0%   { opacity:.5; ry:10; }
+      100% { opacity:.8; ry:13; }
+    }
+
     .input-wrap { position: relative; }
     .input-wrap .form-input { padding-right: 2.8rem; }
     .eye-btn {
@@ -79,9 +108,10 @@
     .auth-logo .fire-icon { font-size: 3rem; animation: flicker 2.5s infinite; display: block; margin-bottom: .5rem; }
     @keyframes flicker { 0%,100%{opacity:1} 40%{opacity:.5} 80%{opacity:.3} }
     .auth-logo h1 {
-      font-size: 1.1rem; font-weight: 900; letter-spacing: 1px;
-      background: linear-gradient(135deg, var(--fire2), var(--fire1));
+      font-size: .95rem; font-weight: 900; letter-spacing: 1.5px; line-height: 1.4;
+      background: linear-gradient(135deg, #fff176, #ff6d00, #b71c1c);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      text-align: center;
     }
     .auth-logo p { font-size: .72rem; color: var(--muted); letter-spacing: 2px; margin-top: .3rem; font-family: 'Share Tech Mono', monospace; }
 
@@ -340,9 +370,30 @@
 <div id="screen-auth" class="screen active">
   <div class="auth-box">
     <div class="auth-logo">
-      <span class="fire-icon">🔥</span>
-      <h1>SYSTÈME DE DÉTECTION INCENDIE</h1>
-      <p>PLATEFORME IoT — SURVEILLANCE CONNECTÉE</p>
+      <div class="flame-svg-wrap">
+        <svg viewBox="0 0 80 100" xmlns="http://www.w3.org/2000/svg" class="flame-svg">
+          <defs>
+            <radialGradient id="fg1" cx="50%" cy="80%" r="60%">
+              <stop offset="0%" stop-color="#fff176"/>
+              <stop offset="40%" stop-color="#ff6d00"/>
+              <stop offset="100%" stop-color="#b71c1c" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="fg2" cx="50%" cy="80%" r="50%">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="30%" stop-color="#ffcc02"/>
+              <stop offset="100%" stop-color="#ff6d00" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <!-- Flamme extérieure -->
+          <path class="flame-outer" d="M40 98 C10 85 5 65 15 45 C20 35 18 20 25 10 C28 22 25 30 30 38 C33 28 36 15 40 5 C44 15 47 28 50 38 C55 30 52 22 55 10 C62 20 60 35 65 45 C75 65 70 85 40 98Z" fill="url(#fg1)"/>
+          <!-- Flamme intérieure -->
+          <path class="flame-inner" d="M40 90 C22 78 20 62 28 48 C31 42 30 32 34 24 C36 32 34 40 38 46 C40 36 41 26 40 18 C44 26 45 36 47 46 C51 40 49 32 51 24 C55 32 54 42 57 48 C65 62 58 78 40 90Z" fill="url(#fg2)"/>
+          <!-- Cœur blanc -->
+          <ellipse cx="40" cy="70" rx="8" ry="12" fill="white" opacity="0.6" class="flame-core"/>
+        </svg>
+      </div>
+      <h1>SYSTÈME INTELLIGENT DE<br/>DÉTECTION D'INCENDIE<br/>EN TEMPS RÉEL</h1>
+      <p>PLATEFORME IoT — ESP32 — SURVEILLANCE CONNECTÉE</p>
     </div>
 
     <div class="auth-tabs">
@@ -396,7 +447,7 @@
   <div id="dash-banner">🔥 INCENDIE DÉTECTÉ — ÉVACUEZ IMMÉDIATEMENT 🔥</div>
 
   <header class="dash-header">
-    <div class="dash-logo">⚠ <span>DÉTECTION INCENDIE</span></div>
+    <div class="dash-logo">🔥 <span>SIDIRT</span></div>
     <div class="dash-user">
       <div class="user-badge">
         <div class="user-avatar" id="user-avatar">?</div>
