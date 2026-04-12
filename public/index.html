@@ -21,6 +21,17 @@
       --radius:  14px;
       --error:   #ff5252;
     }
+    .input-wrap { position: relative; }
+    .input-wrap .form-input { padding-right: 2.8rem; }
+    .eye-btn {
+      position: absolute; right: .75rem; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: 1.1rem; padding: 0;
+      transition: color .2s;
+    }
+    .eye-btn:hover { color: var(--fire1); }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Exo 2', sans-serif;
@@ -347,7 +358,7 @@
       </div>
       <div class="form-group">
         <label class="form-label">Mot de passe</label>
-        <input type="password" class="form-input" id="login-mdp" placeholder="••••••••" onkeydown="if(event.key==='Enter') seConnecter()"/>
+        <div class="input-wrap"><input type="password" class="form-input" id="login-mdp" placeholder="••••••••" onkeydown="if(event.key==='Enter') seConnecter()"/><button class="eye-btn" type="button" onclick="toggleMdp('login-mdp', this)">👁️</button></div>
       </div>
       <button class="btn-auth" onclick="seConnecter()" id="btn-login">🔐 Se connecter</button>
       <div class="auth-msg" id="msg-login"></div>
@@ -365,11 +376,11 @@
       </div>
       <div class="form-group">
         <label class="form-label">Mot de passe (min. 8 caractères)</label>
-        <input type="password" class="form-input" id="reg-mdp" placeholder="••••••••"/>
+        <div class="input-wrap"><input type="password" class="form-input" id="reg-mdp" placeholder="••••••••"/><button class="eye-btn" type="button" onclick="toggleMdp('reg-mdp', this)">👁️</button></div>
       </div>
       <div class="form-group">
         <label class="form-label">Confirmer le mot de passe</label>
-        <input type="password" class="form-input" id="reg-mdp2" placeholder="••••••••" onkeydown="if(event.key==='Enter') sInscrire()"/>
+        <div class="input-wrap"><input type="password" class="form-input" id="reg-mdp2" placeholder="••••••••" onkeydown="if(event.key==='Enter') sInscrire()"/><button class="eye-btn" type="button" onclick="toggleMdp('reg-mdp2', this)">👁️</button></div>
       </div>
       <button class="btn-auth" onclick="sInscrire()" id="btn-register">✅ Créer mon compte</button>
       <div class="auth-msg" id="msg-register"></div>
@@ -499,6 +510,18 @@
   // ═══════════════════════════════════════════
   //   CONFIG
   // ═══════════════════════════════════════════
+
+  function toggleMdp(id, btn) {
+    const input = document.getElementById(id);
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.textContent = '🙈';
+    } else {
+      input.type = 'password';
+      btn.textContent = '👁️';
+    }
+  }
+
   const API = '';  // Même origine que le serveur
   let token = localStorage.getItem('sdi_token');
   let userData = JSON.parse(localStorage.getItem('sdi_user') || '{}');
