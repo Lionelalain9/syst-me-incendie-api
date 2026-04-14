@@ -1,360 +1,832 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="night">
+<html lang="fr">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <meta name="mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="theme-color" content="#e65c00"/>
-  <link rel="manifest" href="manifest.json"/>
-  <title>SIDIRT — Système Intelligent de Détection d'Incendie en Temps Réel</title>
-  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    [data-theme="night"]{--fire1:#e65c00;--fire2:#f9a825;--ember:#ff3d00;--green:#00e676;--bg:#0a0e1a;--surface:#111827;--surface2:#1a2236;--border:#1e2d45;--text:#e2e8f0;--muted:#4a6080;--error:#ff5252;}
-    [data-theme="dark"]{--fire1:#e65c00;--fire2:#f9a825;--ember:#ff3d00;--green:#00e676;--bg:#0c0a06;--surface:#1a1208;--surface2:#231808;--border:#2e1f0a;--text:#f5e6d0;--muted:#7a5c38;--error:#ff5252;}
-    [data-theme="light"]{--fire1:#e65c00;--fire2:#f9a825;--ember:#ff3d00;--green:#00c853;--bg:#f0f4f8;--surface:#ffffff;--surface2:#f8fafc;--border:#e2e8f0;--text:#1e293b;--muted:#94a3b8;--error:#d32f2f;}
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-    html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Exo 2',sans-serif;transition:background .3s,color .3s}
-    #app{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIDIRT — Système Intelligent de Détection d'Incendie en Temps Réel</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c0a06;
+  --bg2: #141008;
+  --bg3: #1e1508;
+  --card: #1a1208;
+  --border: #ff6600;
+  --border2: #cc4400;
+  --accent: #ff6600;
+  --accent2: #ff9900;
+  --danger: #ff2200;
+  --safe: #00cc44;
+  --warn: #ffaa00;
+  --text: #f0e0c0;
+  --text2: #a08060;
+  --mono: 'Share Tech Mono', monospace;
+  --sans: 'Exo 2', sans-serif;
+}
+.theme-night {
+  --bg: #060c14;
+  --bg2: #0a1020;
+  --bg3: #0e1828;
+  --card: #0a1420;
+  --border: #0088ff;
+  --border2: #0055cc;
+  --accent: #0088ff;
+  --accent2: #00ccff;
+  --text: #c0d8f0;
+  --text2: #6090b0;
+}
+.theme-light {
+  --bg: #f5f0e8;
+  --bg2: #ede5d5;
+  --bg3: #e5dcc8;
+  --card: #fff8f0;
+  --border: #cc4400;
+  --border2: #aa3300;
+  --accent: #cc4400;
+  --accent2: #ff6600;
+  --text: #2a1800;
+  --text2: #7a5030;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh; }
 
-    /* AUTH */
-    #screen-auth{display:none;position:fixed;inset:0;z-index:200;background:#0c0a06;align-items:center;justify-content:center;padding:1.5rem;overflow-y:auto}
-    #screen-auth.active{display:flex}
-    .auth-box{width:100%;max-width:420px;background:#1a1208;border:1px solid #2e1f0a;border-radius:20px;padding:2.2rem 2rem;position:relative;overflow:hidden}
-    .auth-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#e65c00,#f9a825,#e65c00)}
-    .auth-logo{text-align:center;margin-bottom:1.8rem}
-    .flame-svg-wrap{display:flex;justify-content:center;margin-bottom:.8rem;filter:drop-shadow(0 0 18px rgba(255,109,0,.7));animation:flame-pulse 1.8s ease-in-out infinite}
-    .flame-svg{width:65px;height:82px}
-    .flame-outer{animation:flicker-out 1.2s ease-in-out infinite alternate;transform-origin:center bottom}
-    .flame-inner{animation:flicker-in 0.9s ease-in-out infinite alternate;transform-origin:center bottom}
-    .flame-core{animation:core-pulse 1s ease-in-out infinite alternate}
-    @keyframes flame-pulse{0%,100%{filter:drop-shadow(0 0 18px rgba(255,109,0,.7));transform:scaleY(1)}50%{filter:drop-shadow(0 0 30px rgba(255,60,0,.9));transform:scaleY(1.04)}}
-    @keyframes flicker-out{0%{transform:scaleX(1) skewX(0deg)}33%{transform:scaleX(1.04) skewX(-2deg)}66%{transform:scaleX(.97) skewX(1deg)}100%{transform:scaleX(1.02) skewX(2deg)}}
-    @keyframes flicker-in{0%{transform:scaleX(1) skewX(1deg);opacity:.9}50%{transform:scaleX(1.06) skewX(-3deg);opacity:1}100%{transform:scaleX(.95) skewX(2deg);opacity:.85}}
-    @keyframes core-pulse{0%{opacity:.5}100%{opacity:.8}}
-    .auth-logo h1{font-size:.88rem;font-weight:900;letter-spacing:1.5px;line-height:1.5;background:linear-gradient(135deg,#fff176,#ff6d00,#b71c1c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-    .auth-logo p{font-family:'Share Tech Mono',monospace;font-size:.6rem;color:#7a5c38;letter-spacing:2px;margin-top:.3rem}
-    .auth-tabs{display:flex;background:#231808;border-radius:10px;padding:4px;margin-bottom:1.5rem;gap:4px}
-    .auth-tab{flex:1;padding:.55rem;border-radius:7px;border:none;background:transparent;color:#7a5c38;font-family:'Exo 2',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .25s}
-    .auth-tab.active{background:linear-gradient(135deg,#e65c00,#f9a825);color:#fff}
-    .auth-form{display:none}.auth-form.active{display:block}
-    .form-group{margin-bottom:1rem}
-    .form-label{display:block;font-size:.75rem;font-weight:600;color:#7a5c38;margin-bottom:.35rem}
-    .input-wrap{position:relative}
-    .form-input{width:100%;padding:.72rem 1rem;background:#231808;border:1px solid #2e1f0a;border-radius:10px;color:#f5e6d0;font-family:'Exo 2',sans-serif;font-size:.92rem;outline:none;transition:border-color .25s,box-shadow .25s}
-    .form-input:focus{border-color:#e65c00;box-shadow:0 0 0 3px rgba(230,92,0,.15)}
-    .form-input::placeholder{color:#7a5c38}
-    .eye-btn{position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#7a5c38;font-size:1rem;padding:0;transition:color .2s}
-    .eye-btn:hover{color:#e65c00}
-    .btn-auth{width:100%;padding:.82rem;border:none;border-radius:11px;background:linear-gradient(135deg,#e65c00,#f9a825);color:#fff;font-family:'Exo 2',sans-serif;font-size:.95rem;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(230,92,0,.35);margin-top:.4rem}
-    .btn-auth:active{transform:scale(.98)}.btn-auth:disabled{opacity:.6;cursor:not-allowed}
-    .auth-msg{text-align:center;font-size:.8rem;color:#ff5252;margin-top:.7rem;min-height:1.2rem}
-    .auth-msg.success{color:#00e676}
+/* AUTH */
+#auth-screen {
+  min-height:100vh;
+  display:flex; align-items:center; justify-content:center;
+  background: radial-gradient(ellipse at 50% 0%, #3a1500 0%, #0c0a06 60%);
+}
+.auth-box {
+  width:100%; max-width:420px; padding:40px 36px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:4px;
+  box-shadow: 0 0 60px rgba(255,102,0,0.15);
+}
+.auth-logo {
+  text-align:center; margin-bottom:28px;
+}
+.flame-svg { width:64px; height:64px; display:block; margin:0 auto 12px; }
+.auth-title {
+  font-size:13px; font-weight:700; letter-spacing:3px; color:var(--accent);
+  text-align:center; line-height:1.4;
+}
+.auth-tabs { display:flex; margin-bottom:24px; border-bottom:1px solid var(--border2); }
+.auth-tab {
+  flex:1; padding:10px; background:none; border:none; color:var(--text2);
+  font-family:var(--sans); font-size:13px; font-weight:600; letter-spacing:1px;
+  cursor:pointer; transition:.2s;
+}
+.auth-tab.active { color:var(--accent); border-bottom:2px solid var(--accent); }
+.form-group { margin-bottom:16px; }
+.form-group label { display:block; font-size:11px; letter-spacing:2px; color:var(--text2); margin-bottom:6px; }
+.form-group input {
+  width:100%; padding:10px 12px; background:var(--bg3); border:1px solid var(--border2);
+  color:var(--text); font-family:var(--mono); font-size:13px; border-radius:2px;
+  outline:none; transition:.2s;
+}
+.form-group input:focus { border-color:var(--accent); }
+.pass-wrap { position:relative; }
+.pass-wrap input { padding-right:40px; }
+.eye-btn {
+  position:absolute; right:10px; top:50%; transform:translateY(-50%);
+  background:none; border:none; color:var(--text2); cursor:pointer; font-size:16px;
+}
+.btn-auth {
+  width:100%; padding:12px; background:var(--accent); border:none; color:#fff;
+  font-family:var(--sans); font-size:13px; font-weight:700; letter-spacing:2px;
+  cursor:pointer; border-radius:2px; margin-top:8px; transition:.2s;
+}
+.btn-auth:hover { background:var(--accent2); }
+.auth-msg { margin-top:12px; text-align:center; font-size:12px; min-height:20px; }
+.auth-msg.ok { color:var(--safe); }
+.auth-msg.err { color:var(--danger); }
 
-    /* DASHBOARD */
-    #screen-dashboard{display:none;flex-direction:column;height:100%}
-    #screen-dashboard.active{display:flex}
-    #banner{display:none;flex-shrink:0;background:linear-gradient(90deg,var(--ember),var(--fire1),var(--ember));background-size:200%;color:#fff;text-align:center;padding:.5rem;font-weight:700;font-size:.8rem;letter-spacing:2px;animation:slide-bg 1.5s linear infinite,blink .5s infinite}
-    @keyframes slide-bg{0%{background-position:0%}100%{background-position:200%}}
-    @keyframes blink{0%,100%{opacity:1}50%{opacity:.7}}
-    .dash-header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.2rem;height:58px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:relative;transition:background .3s,border-color .3s}
-    .dash-header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--fire1),var(--fire2),var(--fire1),transparent)}
-    .dash-logo{display:flex;align-items:center;gap:.5rem;font-size:.95rem;font-weight:900;letter-spacing:2px}
-    .dash-logo span{background:linear-gradient(135deg,var(--fire2),var(--fire1));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-    .user-badge{display:flex;align-items:center;gap:.5rem;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:.25rem .8rem .25rem .25rem;transition:background .3s}
-    .user-avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--fire1),var(--fire2));display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#fff}
-    .user-name{font-size:.8rem;font-weight:600}
-    #scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
-    #scroll::-webkit-scrollbar{display:none}
-    .page{display:none;padding:1rem;animation:fadein .2s ease}.page.active{display:block}
-    @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-    .section-title{font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--muted);letter-spacing:2.5px;margin-bottom:.7rem}
+/* APP */
+#app-screen { display:none; flex-direction:column; min-height:100vh; }
+header {
+  background:var(--bg2); border-bottom:2px solid var(--accent);
+  padding:12px 20px; display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; z-index:100;
+}
+.logo { display:flex; align-items:center; gap:10px; }
+.logo-icon { font-size:22px; }
+.logo-name { font-size:16px; font-weight:900; letter-spacing:3px; color:var(--accent); }
+.user-info { display:flex; align-items:center; gap:12px; }
+.user-name { font-size:12px; letter-spacing:1px; color:var(--text2); }
+.btn-logout {
+  padding:6px 14px; background:none; border:1px solid var(--border2);
+  color:var(--text2); font-family:var(--sans); font-size:11px; letter-spacing:1px;
+  cursor:pointer; border-radius:2px; transition:.2s;
+}
+.btn-logout:hover { border-color:var(--accent); color:var(--accent); }
 
-    /* CAPTEURS */
-    .sensors-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem}
-    .sensor-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1rem .9rem;position:relative;overflow:hidden;transition:border-color .3s,box-shadow .3s,background .3s}
-    .sensor-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--fire1),var(--fire2));transform:scaleX(0);transform-origin:left;transition:transform .4s}
-    .sensor-card.alerte{border-color:var(--fire1);box-shadow:0 0 16px rgba(230,92,0,.2)}.sensor-card.alerte::before{transform:scaleX(1)}
-    .sensor-card.feu{border-color:var(--ember);box-shadow:0 0 24px rgba(255,61,0,.3);animation:tremor .12s infinite}
-    @keyframes tremor{0%,100%{transform:none}50%{transform:translateX(2px)}}
-    .sc-icon{font-size:1.5rem;margin-bottom:.35rem;display:block}
-    .sc-label{font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--muted);letter-spacing:1.5px;margin-bottom:.3rem}
-    .sc-value{font-family:'Share Tech Mono',monospace;font-size:1.8rem;font-weight:700;line-height:1;color:var(--text);transition:color .3s}
-    .sc-value.danger{color:var(--ember)}.sc-value.warn{color:var(--fire2)}
-    .sc-unit{font-size:.7rem;color:var(--muted)}
-    .sc-state{font-size:.7rem;font-weight:600;margin-top:.3rem}
-    .sc-state.ok{color:var(--green)}.sc-state.warn{color:var(--fire2)}.sc-state.bad{color:var(--ember)}
-    .sc-bar{height:3px;background:var(--border);border-radius:2px;margin-top:.5rem}
-    .sc-bar-f{height:100%;border-radius:2px;background:var(--green);transition:width .6s ease,background .3s}
-    .flame-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:.9rem 1rem;display:flex;align-items:center;gap:.9rem;margin-bottom:.75rem;transition:border-color .3s,box-shadow .3s,background .3s}
-    .flame-card.fire{border-color:var(--ember);box-shadow:0 0 20px rgba(255,61,0,.25);animation:tremor .12s infinite}
-    .flame-emoji{font-size:2.8rem;flex-shrink:0;transition:transform .3s}
-    .flame-emoji.on{animation:dance .35s infinite alternate}
-    @keyframes dance{from{transform:scale(1.08) rotate(-3deg)}to{transform:scale(1.22) rotate(3deg)}}
-    .fi-label{font-family:'Share Tech Mono',monospace;font-size:.56rem;color:var(--muted);letter-spacing:1.5px}
-    .fi-val{font-size:1rem;font-weight:700;margin-top:.2rem}
-    .fi-val.ok{color:var(--green)}.fi-val.bad{color:var(--ember)}
-    .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin-bottom:.75rem}
-    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:.85rem;transition:background .3s}
-    .stat-label{font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--muted);letter-spacing:1.5px}
-    .stat-val{font-family:'Share Tech Mono',monospace;font-size:1.5rem;font-weight:700;margin-top:.2rem}
-    .sync-row{text-align:center;font-family:'Share Tech Mono',monospace;font-size:.56rem;color:var(--muted);padding:.3rem 0 .5rem}
-    .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1rem;margin-bottom:.75rem;transition:background .3s}
-    .card-title{font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--muted);letter-spacing:2px;margin-bottom:.8rem}
-    canvas{width:100%!important}
-    .hist-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem}
-    .hist-item{display:flex;align-items:center;justify-content:space-between;padding:.6rem 0;border-bottom:1px solid var(--border)}
-    .hist-item:last-child{border-bottom:none}
-    .hi-date{font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--muted)}
-    .hi-vals{font-size:.82rem;font-weight:600;margin-top:.1rem}
-    .hi-badge{font-family:'Share Tech Mono',monospace;font-size:.56rem;font-weight:700;padding:.15rem .5rem;border-radius:5px;border:1px solid;white-space:nowrap}
-    .hi-badge.ok{border-color:var(--green);color:var(--green);background:rgba(0,230,118,.08)}
-    .hi-badge.warn{border-color:var(--fire2);color:var(--fire2);background:rgba(249,168,37,.08)}
-    .hi-badge.danger{border-color:var(--ember);color:var(--ember);background:rgba(255,61,0,.1)}
-    .btn{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;padding:.82rem;border-radius:12px;border:none;font-family:'Exo 2',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s}
-    .btn-fire{background:linear-gradient(135deg,var(--fire1),var(--fire2));color:#fff;box-shadow:0 4px 14px rgba(230,92,0,.3)}
-    .btn-fire:active{transform:scale(.97)}
-    .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text);margin-top:.6rem}
-    .btn-outline:active{border-color:var(--fire1);color:var(--fire1)}
-    .btn-sm{width:auto;padding:.35rem .85rem;font-size:.72rem;border-radius:8px;background:linear-gradient(135deg,var(--fire1),var(--fire2));color:#fff;border:none;font-family:'Exo 2',sans-serif;font-weight:700;cursor:pointer}
-    .setting-row{display:flex;align-items:center;justify-content:space-between;padding:.82rem 0;border-bottom:1px solid var(--border)}
-    .setting-row:last-child{border-bottom:none}
-    .setting-label{font-size:.88rem;font-weight:600}
-    .setting-sub{font-size:.7rem;color:var(--muted);margin-top:.1rem}
-    .seuil-val{font-family:'Share Tech Mono',monospace;font-weight:700;font-size:.85rem;background:linear-gradient(135deg,var(--fire1),var(--fire2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-    .toggle{position:relative;width:44px;height:24px;flex-shrink:0}
-    .toggle input{opacity:0;width:0;height:0}
-    .toggle-s{position:absolute;inset:0;background:var(--border);border-radius:999px;cursor:pointer;transition:background .3s}
-    .toggle-s::before{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .3s}
-    .toggle input:checked+.toggle-s{background:var(--fire1)}
-    .toggle input:checked+.toggle-s::before{transform:translateX(20px)}
+/* ALERT BANNER */
+#alert-banner {
+  display:none; padding:12px 20px; text-align:center;
+  font-size:13px; font-weight:700; letter-spacing:2px;
+  animation: blink-bg 1s infinite;
+}
+#alert-banner.show { display:block; }
+@keyframes blink-bg {
+  0%,100% { background:#cc0000; color:#fff; }
+  50% { background:#ff4400; color:#fff; }
+}
 
-    /* SÉLECTEUR THÈME */
-    .theme-selector{display:flex;gap:.5rem;margin-top:.5rem}
-    .theme-btn{flex:1;padding:.6rem .3rem;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:'Exo 2',sans-serif;font-size:.7rem;font-weight:700;text-align:center;transition:all .2s}
-    .theme-btn:hover{border-color:var(--fire1);color:var(--fire1)}
-    .theme-btn.active{border-color:var(--fire1);color:var(--fire1);background:rgba(230,92,0,.1)}
-    .th-icon{font-size:1.3rem;display:block;margin-bottom:.2rem}
+/* MAIN */
+main { flex:1; padding:16px; padding-bottom:80px; max-width:900px; margin:0 auto; width:100%; }
 
-    /* NAV */
-    nav{background:var(--surface);border-top:1px solid var(--border);display:flex;flex-shrink:0;padding-bottom:calc(env(safe-area-inset-bottom,0px) + .3rem);position:relative;transition:background .3s}
-    nav::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--fire1),var(--fire2),var(--fire1),transparent)}
-    .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:.15rem;padding:.6rem .4rem .35rem;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:color .2s;font-family:'Exo 2',sans-serif;font-size:.56rem;font-weight:600;letter-spacing:.3px}
-    .nav-icon{font-size:1.25rem;transition:transform .2s}
-    .nav-btn.active{color:var(--fire1)}.nav-btn.active .nav-icon{transform:scale(1.15)}
-    .nav-btn:active .nav-icon{transform:scale(.88)}
-    #toast{position:fixed;bottom:calc(72px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%) translateY(12px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.5rem 1.1rem;border-radius:999px;font-size:.78rem;white-space:nowrap;opacity:0;transition:all .3s;z-index:500;pointer-events:none}
-    #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-    .spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--fire1);border-radius:50%;animation:spin .7s linear infinite;margin:1.5rem auto}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    @media(min-width:768px){.sensors-grid{grid-template-columns:repeat(3,1fr)}.stats-grid{grid-template-columns:repeat(4,1fr)}}
-  </style>
+/* PAGES */
+.page { display:none; }
+.page.active { display:block; }
+
+/* CARDS */
+.section-title {
+  font-size:10px; letter-spacing:3px; color:var(--text2);
+  margin-bottom:12px; padding-bottom:6px; border-bottom:1px solid var(--border2);
+}
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+.card {
+  background:var(--card); border:1px solid var(--border2);
+  border-radius:2px; padding:16px;
+}
+.card-icon { font-size:24px; margin-bottom:8px; }
+.card-label { font-size:10px; letter-spacing:2px; color:var(--text2); margin-bottom:4px; }
+.card-value { font-size:32px; font-weight:900; font-family:var(--mono); }
+.card-status { font-size:11px; margin-top:6px; font-weight:700; letter-spacing:1px; }
+.card-bar { height:4px; background:var(--bg3); border-radius:2px; margin-top:10px; overflow:hidden; }
+.card-bar-fill { height:100%; background:var(--accent); border-radius:2px; transition:.5s; }
+.status-ok { color:var(--safe); }
+.status-warn { color:var(--warn); }
+.status-danger { color:var(--danger); }
+
+.flame-card {
+  background:var(--card); border:1px solid var(--border2);
+  border-radius:2px; padding:16px; margin-bottom:12px;
+  display:flex; align-items:center; gap:16px;
+}
+.flame-indicator {
+  width:48px; height:48px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:24px; flex-shrink:0;
+}
+.flame-indicator.safe { background:rgba(0,204,68,0.15); border:2px solid var(--safe); }
+.flame-indicator.danger { background:rgba(255,34,0,0.15); border:2px solid var(--danger); animation:pulse 1s infinite; }
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+.flame-text { font-size:14px; font-weight:700; letter-spacing:1px; }
+
+.stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:12px; }
+.stat-card {
+  background:var(--card); border:1px solid var(--border2);
+  border-radius:2px; padding:12px; text-align:center;
+}
+.stat-label { font-size:9px; letter-spacing:2px; color:var(--text2); margin-bottom:4px; }
+.stat-value { font-size:22px; font-weight:900; font-family:var(--mono); color:var(--accent); }
+
+.sync-info { text-align:center; font-size:11px; color:var(--text2); font-family:var(--mono); }
+
+/* GRAPHIQUES */
+canvas { width:100% !important; max-height:220px; }
+.chart-card { background:var(--card); border:1px solid var(--border2); border-radius:2px; padding:16px; margin-bottom:12px; }
+
+/* HISTORIQUE */
+.hist-table { width:100%; border-collapse:collapse; font-size:12px; font-family:var(--mono); }
+.hist-table th { padding:8px 10px; text-align:left; font-size:9px; letter-spacing:2px; color:var(--text2); border-bottom:1px solid var(--border2); }
+.hist-table td { padding:8px 10px; border-bottom:1px solid var(--bg3); }
+.badge { padding:2px 8px; border-radius:2px; font-size:10px; font-weight:700; letter-spacing:1px; }
+.badge-ok { background:rgba(0,204,68,0.15); color:var(--safe); }
+.badge-warn { background:rgba(255,170,0,0.15); color:var(--warn); }
+.badge-danger { background:rgba(255,34,0,0.15); color:var(--danger); }
+.btn-export {
+  padding:8px 16px; background:none; border:1px solid var(--border);
+  color:var(--accent); font-family:var(--sans); font-size:11px; letter-spacing:1px;
+  cursor:pointer; border-radius:2px; margin-bottom:12px; transition:.2s;
+}
+.btn-export:hover { background:var(--accent); color:#fff; }
+
+/* CAMÉRA */
+.camera-page { }
+.camera-status {
+  background:var(--card); border:1px solid var(--border2);
+  border-radius:2px; padding:20px; margin-bottom:12px; text-align:center;
+}
+.camera-inactive { color:var(--text2); }
+.camera-active { color:var(--danger); }
+.camera-badge {
+  display:inline-block; padding:4px 12px; border-radius:2px;
+  font-size:10px; font-weight:700; letter-spacing:2px; margin-bottom:12px;
+}
+.camera-badge.off { background:rgba(100,100,100,0.2); color:var(--text2); border:1px solid var(--text2); }
+.camera-badge.live { background:rgba(255,34,0,0.2); color:var(--danger); border:1px solid var(--danger); animation:blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+.video-container {
+  background:#000; border:2px solid var(--border2);
+  border-radius:2px; overflow:hidden; margin-bottom:12px;
+  aspect-ratio:16/9; display:flex; align-items:center; justify-content:center;
+  position:relative;
+}
+.video-placeholder {
+  text-align:center; color:var(--text2);
+}
+.video-placeholder .icon { font-size:48px; margin-bottom:8px; }
+.video-placeholder p { font-size:12px; letter-spacing:1px; }
+
+.video-container video { width:100%; height:100%; object-fit:cover; display:none; }
+.video-container.active video { display:block; }
+.video-container.active .video-placeholder { display:none; }
+
+.live-overlay {
+  position:absolute; top:10px; left:10px;
+  background:rgba(255,34,0,0.8); color:#fff;
+  padding:4px 10px; font-size:10px; font-weight:700; letter-spacing:2px;
+  border-radius:2px; display:none;
+}
+.video-container.active .live-overlay { display:block; }
+
+.camera-link-box {
+  background:var(--bg3); border:1px solid var(--border2);
+  border-radius:2px; padding:12px; margin-bottom:12px;
+}
+.camera-link-label { font-size:10px; letter-spacing:2px; color:var(--text2); margin-bottom:6px; }
+.camera-link-url { font-family:var(--mono); font-size:12px; color:var(--accent); word-break:break-all; }
+.btn-copy {
+  margin-top:8px; padding:6px 14px; background:none; border:1px solid var(--border);
+  color:var(--accent); font-family:var(--sans); font-size:11px; letter-spacing:1px;
+  cursor:pointer; border-radius:2px; transition:.2s;
+}
+.btn-copy:hover { background:var(--accent); color:#fff; }
+
+.sms-info {
+  background:var(--card); border:1px solid var(--border2);
+  border-radius:2px; padding:14px;
+}
+.sms-info-title { font-size:10px; letter-spacing:2px; color:var(--text2); margin-bottom:10px; }
+.sms-row { display:flex; gap:10px; margin-bottom:8px; align-items:flex-start; }
+.sms-to { font-size:10px; letter-spacing:1px; color:var(--text2); min-width:100px; padding-top:2px; }
+.sms-msg { font-size:11px; font-family:var(--mono); color:var(--text); background:var(--bg3); padding:6px 10px; border-radius:2px; flex:1; }
+
+/* RÉGLAGES */
+.settings-card { background:var(--card); border:1px solid var(--border2); border-radius:2px; padding:16px; margin-bottom:12px; }
+.settings-title { font-size:10px; letter-spacing:2px; color:var(--text2); margin-bottom:14px; }
+.setting-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.setting-label { font-size:12px; color:var(--text); }
+.toggle { position:relative; width:44px; height:24px; }
+.toggle input { opacity:0; width:0; height:0; }
+.slider {
+  position:absolute; cursor:pointer; inset:0;
+  background:var(--bg3); border:1px solid var(--border2); border-radius:12px; transition:.3s;
+}
+.slider:before {
+  content:''; position:absolute; width:18px; height:18px;
+  left:2px; top:2px; background:var(--text2); border-radius:50%; transition:.3s;
+}
+input:checked + .slider { background:var(--accent); border-color:var(--accent); }
+input:checked + .slider:before { transform:translateX(20px); background:#fff; }
+
+.theme-btns { display:flex; gap:8px; }
+.theme-btn {
+  padding:6px 14px; border-radius:2px; border:1px solid var(--border2);
+  background:none; color:var(--text2); font-family:var(--sans); font-size:11px;
+  letter-spacing:1px; cursor:pointer; transition:.2s;
+}
+.theme-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(255,102,0,0.1); }
+
+.seuil-row { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+.seuil-label { font-size:11px; color:var(--text); min-width:120px; }
+.seuil-val { font-family:var(--mono); font-size:13px; color:var(--accent); min-width:60px; }
+input[type=range] { flex:1; accent-color:var(--accent); }
+
+/* NAV */
+nav {
+  position:fixed; bottom:0; left:0; right:0;
+  background:var(--bg2); border-top:2px solid var(--accent);
+  display:flex; z-index:100;
+}
+.nav-btn {
+  flex:1; padding:12px 4px 8px;
+  background:none; border:none; color:var(--text2);
+  font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:1px;
+  cursor:pointer; transition:.2s; display:flex; flex-direction:column; align-items:center; gap:4px;
+}
+.nav-btn .nav-icon { font-size:20px; }
+.nav-btn.active { color:var(--accent); border-top:2px solid var(--accent); margin-top:-2px; }
+.nav-btn.camera-nav { position:relative; }
+.nav-btn.camera-nav .cam-dot {
+  position:absolute; top:8px; right:calc(50% - 14px);
+  width:8px; height:8px; background:var(--danger); border-radius:50%;
+  display:none; animation:blink 1s infinite;
+}
+.nav-btn.camera-nav.alert .cam-dot { display:block; }
+</style>
 </head>
 <body>
-<div id="app">
 
-  <!-- AUTH -->
-  <div id="screen-auth" class="active">
-    <div class="auth-box">
-      <div class="auth-logo">
-        <div class="flame-svg-wrap">
-          <svg viewBox="0 0 80 100" xmlns="http://www.w3.org/2000/svg" class="flame-svg">
-            <defs>
-              <radialGradient id="fg1" cx="50%" cy="80%" r="60%"><stop offset="0%" stop-color="#fff176"/><stop offset="40%" stop-color="#ff6d00"/><stop offset="100%" stop-color="#b71c1c" stop-opacity="0"/></radialGradient>
-              <radialGradient id="fg2" cx="50%" cy="80%" r="50%"><stop offset="0%" stop-color="#ffffff"/><stop offset="30%" stop-color="#ffcc02"/><stop offset="100%" stop-color="#ff6d00" stop-opacity="0"/></radialGradient>
-            </defs>
-            <path class="flame-outer" d="M40 98 C10 85 5 65 15 45 C20 35 18 20 25 10 C28 22 25 30 30 38 C33 28 36 15 40 5 C44 15 47 28 50 38 C55 30 52 22 55 10 C62 20 60 35 65 45 C75 65 70 85 40 98Z" fill="url(#fg1)"/>
-            <path class="flame-inner" d="M40 90 C22 78 20 62 28 48 C31 42 30 32 34 24 C36 32 34 40 38 46 C40 36 41 26 40 18 C44 26 45 36 47 46 C51 40 49 32 51 24 C55 32 54 42 57 48 C65 62 58 78 40 90Z" fill="url(#fg2)"/>
-            <ellipse cx="40" cy="70" rx="8" ry="12" fill="white" opacity="0.6" class="flame-core"/>
-          </svg>
-        </div>
-        <h1>SYSTÈME INTELLIGENT DE<br/>DÉTECTION D'INCENDIE<br/>EN TEMPS RÉEL</h1>
-        <p>PLATEFORME IoT — ESP32 — SURVEILLANCE CONNECTÉE</p>
-      </div>
-      <div class="auth-tabs">
-        <button class="auth-tab active" onclick="switchTab('connexion')">Se connecter</button>
-        <button class="auth-tab" onclick="switchTab('inscription')">Créer un compte</button>
-      </div>
-      <div class="auth-form active" id="form-connexion">
-        <div class="form-group"><label class="form-label">Adresse email</label><input type="email" class="form-input" id="login-email" placeholder="votre@email.com"/></div>
-        <div class="form-group"><label class="form-label">Mot de passe</label><div class="input-wrap"><input type="password" class="form-input" id="login-mdp" placeholder="••••••••" style="padding-right:2.8rem" onkeydown="if(event.key==='Enter')seConnecter()"/><button class="eye-btn" type="button" onclick="toggleMdp('login-mdp',this)">👁️</button></div></div>
-        <button class="btn-auth" onclick="seConnecter()" id="btn-login">🔐 Se connecter</button>
-        <div class="auth-msg" id="msg-login"></div>
-      </div>
-      <div class="auth-form" id="form-inscription">
-        <div class="form-group"><label class="form-label">Nom complet</label><input type="text" class="form-input" id="reg-nom" placeholder="Jean Dupont"/></div>
-        <div class="form-group"><label class="form-label">Adresse email</label><input type="email" class="form-input" id="reg-email" placeholder="votre@email.com"/></div>
-        <div class="form-group"><label class="form-label">Mot de passe (min. 8 caractères)</label><div class="input-wrap"><input type="password" class="form-input" id="reg-mdp" placeholder="••••••••" style="padding-right:2.8rem"/><button class="eye-btn" type="button" onclick="toggleMdp('reg-mdp',this)">👁️</button></div></div>
-        <div class="form-group"><label class="form-label">Confirmer le mot de passe</label><div class="input-wrap"><input type="password" class="form-input" id="reg-mdp2" placeholder="••••••••" style="padding-right:2.8rem" onkeydown="if(event.key==='Enter')sInscrire()"/><button class="eye-btn" type="button" onclick="toggleMdp('reg-mdp2',this)">👁️</button></div></div>
-        <button class="btn-auth" onclick="sInscrire()" id="btn-register">✅ Créer mon compte</button>
-        <div class="auth-msg" id="msg-register"></div>
-      </div>
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <svg class="flame-svg" viewBox="0 0 64 80" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="fg" cx="50%" cy="80%" r="60%">
+            <stop offset="0%" stop-color="#fff700"/>
+            <stop offset="40%" stop-color="#ff6600"/>
+            <stop offset="100%" stop-color="#cc0000"/>
+          </radialGradient>
+        </defs>
+        <g>
+          <animateTransform attributeName="transform" type="scale" values="1,1;1.04,1.02;1,1" dur="1.2s" repeatCount="indefinite" additive="sum"/>
+          <path d="M32 4 C32 4 48 20 48 36 C48 44 44 50 38 54 C40 46 36 40 32 38 C28 40 24 46 26 54 C20 50 16 44 16 36 C16 20 32 4 32 4Z" fill="url(#fg)" opacity="0.9">
+            <animate attributeName="d" values="M32 4 C32 4 48 20 48 36 C48 44 44 50 38 54 C40 46 36 40 32 38 C28 40 24 46 26 54 C20 50 16 44 16 36 C16 20 32 4 32 4Z;M32 2 C32 2 50 18 50 36 C50 46 45 52 38 56 C41 47 36 41 32 39 C28 41 23 47 26 56 C19 52 14 46 14 36 C14 18 32 2 32 2Z;M32 4 C32 4 48 20 48 36 C48 44 44 50 38 54 C40 46 36 40 32 38 C28 40 24 46 26 54 C20 50 16 44 16 36 C16 20 32 4 32 4Z" dur="1.2s" repeatCount="indefinite"/>
+          </path>
+          <path d="M32 72 C24 72 18 66 18 58 C18 52 22 48 26 46 C25 52 28 56 32 58 C36 56 39 52 38 46 C42 48 46 52 46 58 C46 66 40 72 32 72Z" fill="#ff9900" opacity="0.7">
+            <animate attributeName="opacity" values="0.7;0.9;0.7" dur="0.8s" repeatCount="indefinite"/>
+          </path>
+        </g>
+      </svg>
+      <div class="auth-title">SYSTÈME INTELLIGENT DE<br>DÉTECTION D'INCENDIE<br>EN TEMPS RÉEL</div>
     </div>
-  </div>
-
-  <!-- DASHBOARD -->
-  <div id="screen-dashboard">
-    <div id="banner">🔥 INCENDIE DÉTECTÉ — ÉVACUEZ IMMÉDIATEMENT 🔥</div>
-    <header class="dash-header">
-      <div class="dash-logo">🔥 <span>SIDIRT</span></div>
-      <div class="user-badge"><div class="user-avatar" id="user-avatar">?</div><span class="user-name" id="user-name">--</span></div>
-    </header>
-    <div id="scroll">
-
-      <!-- ACCUEIL -->
-      <div class="page active" id="page-home">
-        <div class="section-title">CAPTEURS EN TEMPS RÉEL</div>
-        <div class="sensors-grid">
-          <div class="sensor-card" id="card-temp"><span class="sc-icon">🌡️</span><div class="sc-label">TEMPÉRATURE</div><div class="sc-value" id="v-temp">--<span class="sc-unit">°C</span></div><div class="sc-state ok" id="s-temp">--</div><div class="sc-bar"><div class="sc-bar-f" id="b-temp" style="width:0%"></div></div></div>
-          <div class="sensor-card" id="card-gaz"><span class="sc-icon">💨</span><div class="sc-label">GAZ MQ-2</div><div class="sc-value" id="v-gaz">--</div><div class="sc-state ok" id="s-gaz">--</div><div class="sc-bar"><div class="sc-bar-f" id="b-gaz" style="width:0%"></div></div></div>
-        </div>
-        <div class="flame-card" id="card-flamme"><div class="flame-emoji" id="f-icon">🟢</div><div><div class="fi-label">DÉTECTEUR DE FLAMME</div><div class="fi-val ok" id="f-text">AUCUNE FLAMME DÉTECTÉE</div></div></div>
-        <div class="section-title">STATISTIQUES</div>
-        <div class="stats-grid">
-          <div class="stat-card"><div class="stat-label">TEMP. MAX</div><div class="stat-val" id="st-tmax" style="color:var(--ember)">--</div></div>
-          <div class="stat-card"><div class="stat-label">INCENDIES</div><div class="stat-val" id="st-inc" style="color:var(--ember)">--</div></div>
-          <div class="stat-card"><div class="stat-label">ALERTES GAZ</div><div class="stat-val" id="st-gaz2" style="color:var(--fire2)">--</div></div>
-          <div class="stat-card"><div class="stat-label">ALERTES TEMP.</div><div class="stat-val" id="st-temp2" style="color:var(--fire1)">--</div></div>
-        </div>
-        <div class="sync-row" id="sync-time">En attente de données...</div>
-      </div>
-
-      <!-- GRAPHIQUES -->
-      <div class="page" id="page-charts">
-        <div class="card"><div class="card-title">ÉVOLUTION TEMPÉRATURE (°C)</div><canvas id="ct" height="160"></canvas></div>
-        <div class="card"><div class="card-title">ÉVOLUTION GAZ — MQ-2</div><canvas id="cg" height="160"></canvas></div>
-      </div>
-
-      <!-- HISTORIQUE -->
-      <div class="page" id="page-history">
-        <div class="card">
-          <div class="hist-header"><div class="card-title" style="margin:0">HISTORIQUE DES MESURES</div><button class="btn-sm" onclick="exportCSV()">⬇ CSV</button></div>
-          <div id="hist-list"><div class="spinner"></div></div>
-        </div>
-      </div>
-
-      <!-- RÉGLAGES -->
-      <div class="page" id="page-settings">
-        <div class="card">
-          <div class="card-title">THÈME DE L'APPLICATION</div>
-          <div class="theme-selector">
-            <button class="theme-btn" id="th-night" onclick="setTheme('night')"><span class="th-icon">🌊</span>NUIT</button>
-            <button class="theme-btn" id="th-dark" onclick="setTheme('dark')"><span class="th-icon">🔥</span>SOMBRE</button>
-            <button class="theme-btn" id="th-light" onclick="setTheme('light')"><span class="th-icon">☀️</span>CLAIR</button>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">CONNEXION</div>
-          <div class="setting-row"><div><div class="setting-label">Serveur API</div><div class="setting-sub">sdi-api-0fsx.onrender.com</div></div></div>
-          <div class="setting-row"><div><div class="setting-label">Actualisation auto</div><div class="setting-sub">Toutes les 5 secondes</div></div><label class="toggle"><input type="checkbox" id="tog-auto" checked onchange="toggleAuto(this)"/><span class="toggle-s"></span></label></div>
-          <div class="setting-row"><div><div class="setting-label">Notifications</div><div class="setting-sub">Alertes incendie</div></div><label class="toggle"><input type="checkbox" id="tog-notif" onchange="toggleNotif(this)"/><span class="toggle-s"></span></label></div>
-        </div>
-        <div class="card">
-          <div class="card-title">SEUILS D'ALERTE</div>
-          <div class="setting-row"><div><div class="setting-label">🌡️ Température</div></div><div class="seuil-val">≥ 50 °C</div></div>
-          <div class="setting-row"><div><div class="setting-label">💨 Gaz MQ-2</div></div><div class="seuil-val">≥ 500</div></div>
-          <div class="setting-row"><div><div class="setting-label">🔥 Flamme</div></div><div class="seuil-val">DÉTECTÉE</div></div>
-        </div>
-        <div class="card">
-          <div class="card-title">MON COMPTE</div>
-          <div class="setting-row"><div><div class="setting-label" id="set-nom">--</div><div class="setting-sub" id="set-email">--</div></div></div>
-          <div class="setting-row"><div><div class="setting-label">Version</div><div class="setting-sub">SIDIRT PWA v2.0</div></div></div>
-        </div>
-        <button class="btn btn-fire" onclick="forceRefresh()" style="margin-bottom:.6rem">🔄 Actualiser</button>
-        <button class="btn btn-outline" onclick="seDeconnecter()">⬅ Déconnexion</button>
-      </div>
-
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="showTab('login')">CONNEXION</button>
+      <button class="auth-tab" onclick="showTab('register')">INSCRIPTION</button>
     </div>
-    <nav>
-      <button class="nav-btn active" onclick="goTo('home',this)"><span class="nav-icon">🏠</span>ACCUEIL</button>
-      <button class="nav-btn" onclick="goTo('charts',this)"><span class="nav-icon">📈</span>GRAPHIQUES</button>
-      <button class="nav-btn" onclick="goTo('history',this)"><span class="nav-icon">📋</span>HISTORIQUE</button>
-      <button class="nav-btn" onclick="goTo('settings',this)"><span class="nav-icon">⚙️</span>RÉGLAGES</button>
-    </nav>
+    <div id="login-form">
+      <div class="form-group">
+        <label>EMAIL</label>
+        <input type="email" id="login-email" placeholder="votre@email.com"/>
+      </div>
+      <div class="form-group">
+        <label>MOT DE PASSE</label>
+        <div class="pass-wrap">
+          <input type="password" id="login-pass" placeholder="••••••••"/>
+          <button class="eye-btn" onclick="togglePass('login-pass',this)">👁</button>
+        </div>
+      </div>
+      <button class="btn-auth" onclick="login()">SE CONNECTER</button>
+    </div>
+    <div id="register-form" style="display:none">
+      <div class="form-group">
+        <label>NOM COMPLET</label>
+        <input type="text" id="reg-nom" placeholder="Votre nom"/>
+      </div>
+      <div class="form-group">
+        <label>EMAIL</label>
+        <input type="email" id="reg-email" placeholder="votre@email.com"/>
+      </div>
+      <div class="form-group">
+        <label>MOT DE PASSE</label>
+        <div class="pass-wrap">
+          <input type="password" id="reg-pass" placeholder="••••••••"/>
+          <button class="eye-btn" onclick="togglePass('reg-pass',this)">👁</button>
+        </div>
+      </div>
+      <button class="btn-auth" onclick="register()">CRÉER MON COMPTE</button>
+    </div>
+    <div class="auth-msg" id="auth-msg"></div>
   </div>
-
 </div>
-<div id="toast"></div>
 
+<!-- APP -->
+<div id="app-screen">
+  <div id="alert-banner">🔥 INCENDIE DÉTECTÉ — ÉVACUEZ IMMÉDIATEMENT 🔥</div>
+  <header>
+    <div class="logo">
+      <span class="logo-icon">🔥</span>
+      <span class="logo-name">SIDIRT</span>
+    </div>
+    <div class="user-info">
+      <span class="user-name" id="user-display"></span>
+      <button class="btn-logout" onclick="logout()">DÉCONNEXION</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ACCUEIL -->
+    <div class="page active" id="page-accueil">
+      <p class="section-title">CAPTEURS EN TEMPS RÉEL</p>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-icon">🌡️</div>
+          <div class="card-label">TEMPÉRATURE</div>
+          <div class="card-value" id="val-temp">--</div>
+          <div class="card-status" id="st-temp">--</div>
+          <div class="card-bar"><div class="card-bar-fill" id="bar-temp" style="width:0%"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-icon">💨</div>
+          <div class="card-label">GAZ MQ-2</div>
+          <div class="card-value" id="val-gaz">--</div>
+          <div class="card-status" id="st-gaz">--</div>
+          <div class="card-bar"><div class="card-bar-fill" id="bar-gaz" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div class="flame-card">
+        <div class="flame-indicator safe" id="flame-indicator">✅</div>
+        <div>
+          <div class="card-label">DÉTECTEUR DE FLAMME</div>
+          <div class="flame-text" id="flame-text">AUCUNE FLAMME DÉTECTÉE</div>
+        </div>
+      </div>
+      <p class="section-title">STATISTIQUES</p>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">TEMP. MAX</div><div class="stat-value" id="stat-tmax">--</div></div>
+        <div class="stat-card"><div class="stat-label">INCENDIES</div><div class="stat-value" id="stat-inc">0</div></div>
+        <div class="stat-card"><div class="stat-label">ALERTES GAZ</div><div class="stat-value" id="stat-gaz">0</div></div>
+        <div class="stat-card"><div class="stat-label">ALERTES TEMP</div><div class="stat-value" id="stat-temp">0</div></div>
+      </div>
+      <div class="sync-info">⟳ Sync : <span id="sync-time">--</span></div>
+    </div>
+
+    <!-- GRAPHIQUES -->
+    <div class="page" id="page-graphiques">
+      <p class="section-title">ÉVOLUTION TEMPÉRATURE</p>
+      <div class="chart-card"><canvas id="chart-temp"></canvas></div>
+      <p class="section-title">ÉVOLUTION GAZ MQ-2</p>
+      <div class="chart-card"><canvas id="chart-gaz"></canvas></div>
+    </div>
+
+    <!-- HISTORIQUE -->
+    <div class="page" id="page-historique">
+      <button class="btn-export" onclick="exportCSV()">⬇ EXPORTER CSV</button>
+      <div style="overflow-x:auto">
+        <table class="hist-table">
+          <thead><tr>
+            <th>DATE/HEURE</th><th>TEMP</th><th>GAZ</th><th>FLAMME</th><th>STATUT</th>
+          </tr></thead>
+          <tbody id="hist-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CAMÉRA -->
+    <div class="page" id="page-camera">
+      <p class="section-title">SURVEILLANCE VIDÉO</p>
+      <div class="camera-status">
+        <div class="camera-badge off" id="cam-badge">⬤ VEILLE</div>
+        <p id="cam-status-text" style="font-size:12px;letter-spacing:1px;color:var(--text2);margin-top:8px;">
+          La caméra s'active automatiquement en cas de détection d'incendie
+        </p>
+      </div>
+      <div class="video-container" id="video-container">
+        <div class="live-overlay">● LIVE</div>
+        <video id="live-video" autoplay muted loop>
+          <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+        </video>
+        <div class="video-placeholder">
+          <div class="icon">📹</div>
+          <p>EN ATTENTE DE DÉTECTION</p>
+          <p style="margin-top:4px;font-size:10px;">Caméra ESP32-CAM inactive</p>
+        </div>
+      </div>
+      <div class="camera-link-box" id="cam-link-box" style="display:none">
+        <div class="camera-link-label">🔗 LIEN DE STREAM VIDÉO</div>
+        <div class="camera-link-url" id="cam-link-url">https://sdi-api-0fsx.onrender.com/camera/live</div>
+        <button class="btn-copy" onclick="copyLink()">📋 COPIER LE LIEN</button>
+      </div>
+      <div class="sms-info" id="sms-info" style="display:none">
+        <div class="sms-info-title">📱 SMS ENVOYÉS AUTOMATIQUEMENT</div>
+        <div class="sms-row">
+          <div class="sms-to">👤 PROPRIÉTAIRE</div>
+          <div class="sms-msg" id="sms-proprio">--</div>
+        </div>
+        <div class="sms-row">
+          <div class="sms-to">🚒 AUTORITÉS</div>
+          <div class="sms-msg" id="sms-auto">--</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RÉGLAGES -->
+    <div class="page" id="page-reglages">
+      <div class="settings-card">
+        <div class="settings-title">THÈME</div>
+        <div class="theme-btns">
+          <button class="theme-btn" onclick="setTheme('night',this)">🌊 NUIT</button>
+          <button class="theme-btn active" onclick="setTheme('',this)">🔥 SOMBRE</button>
+          <button class="theme-btn" onclick="setTheme('light',this)">☀️ CLAIR</button>
+        </div>
+      </div>
+      <div class="settings-card">
+        <div class="settings-title">OPTIONS</div>
+        <div class="setting-row">
+          <span class="setting-label">Actualisation automatique</span>
+          <label class="toggle"><input type="checkbox" id="tog-auto" checked onchange="toggleAuto()"><span class="slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Notifications incendie</span>
+          <label class="toggle"><input type="checkbox" id="tog-notif" checked><span class="slider"></span></label>
+        </div>
+      </div>
+      <div class="settings-card">
+        <div class="settings-title">SEUILS D'ALERTE</div>
+        <div class="seuil-row">
+          <span class="seuil-label">🌡️ Température</span>
+          <input type="range" min="30" max="100" value="50" oninput="document.getElementById('sv-temp').textContent=this.value+'°C'">
+          <span class="seuil-val" id="sv-temp">50°C</span>
+        </div>
+        <div class="seuil-row">
+          <span class="seuil-label">💨 Gaz MQ-2</span>
+          <input type="range" min="100" max="1023" value="500" oninput="document.getElementById('sv-gaz').textContent=this.value">
+          <span class="seuil-val" id="sv-gaz">500</span>
+        </div>
+      </div>
+      <div class="settings-card">
+        <div class="settings-title">COMPTE</div>
+        <div class="setting-row">
+          <span class="setting-label" id="set-nom">--</span>
+          <span style="font-size:10px;color:var(--text2);letter-spacing:1px;">CONNECTÉ</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <nav>
+    <button class="nav-btn active" onclick="showPage('accueil',this)">
+      <span class="nav-icon">🏠</span>ACCUEIL
+    </button>
+    <button class="nav-btn" onclick="showPage('graphiques',this)">
+      <span class="nav-icon">📈</span>GRAPHIQUES
+    </button>
+    <button class="nav-btn" onclick="showPage('historique',this)">
+      <span class="nav-icon">📋</span>HISTORIQUE
+    </button>
+    <button class="nav-btn camera-nav" onclick="showPage('camera',this)" id="nav-camera">
+      <span class="cam-dot"></span>
+      <span class="nav-icon">📹</span>CAMÉRA
+    </button>
+    <button class="nav-btn" onclick="showPage('reglages',this)">
+      <span class="nav-icon">⚙️</span>RÉGLAGES
+    </button>
+  </nav>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
-  const API='';
-  let token=localStorage.getItem('sdi_token');
-  let userData=JSON.parse(localStorage.getItem('sdi_user')||'{}');
-  let histData=[],autoTimer=null,notifOk=false;
+const API = 'https://sdi-api-0fsx.onrender.com';
+let token = localStorage.getItem('sdi_token');
+let userName = localStorage.getItem('sdi_name') || '';
+let autoRefresh = true;
+let refreshTimer = null;
+let chartTemp, chartGaz;
+let tempData = [], gazData = [], labels = [];
+let incendieActif = false;
 
-  function setTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('sdi_theme',t);document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));document.getElementById('th-'+t).classList.add('active');updateCharts();toast(t==='night'?'🌊 Thème Nuit':t==='dark'?'🔥 Thème Sombre':'☀️ Thème Clair');}
-  const savedTheme=localStorage.getItem('sdi_theme')||'night';
-  document.documentElement.setAttribute('data-theme',savedTheme);
+// ── AUTH ──────────────────────────────────────────────
+function showTab(t) {
+  document.getElementById('login-form').style.display = t==='login'?'block':'none';
+  document.getElementById('register-form').style.display = t==='register'?'block':'none';
+  document.querySelectorAll('.auth-tab').forEach((b,i)=>b.classList.toggle('active',(t==='login'&&i===0)||(t==='register'&&i===1)));
+}
+function togglePass(id,btn) {
+  const i = document.getElementById(id);
+  i.type = i.type==='password'?'text':'password';
+  btn.textContent = i.type==='password'?'👁':'🙈';
+}
+function msg(txt,ok) {
+  const el = document.getElementById('auth-msg');
+  el.textContent = txt; el.className = 'auth-msg '+(ok?'ok':'err');
+}
+async function login() {
+  const email = document.getElementById('login-email').value;
+  const pass = document.getElementById('login-pass').value;
+  if(!email||!pass) return msg('Remplissez tous les champs','');
+  try {
+    const r = await fetch(API+'/api/auth/connexion',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,mot_de_passe:pass})});
+    const d = await r.json();
+    if(d.token) {
+      token=d.token; userName=d.utilisateur?.nom||email;
+      localStorage.setItem('sdi_token',token);
+      localStorage.setItem('sdi_name',userName);
+      msg('✅ Connexion réussie !',true);
+      setTimeout(startApp,800);
+    } else msg(d.message||'Erreur de connexion','');
+  } catch(e) { msg('Erreur serveur',''); }
+}
+async function register() {
+  const nom=document.getElementById('reg-nom').value;
+  const email=document.getElementById('reg-email').value;
+  const pass=document.getElementById('reg-pass').value;
+  if(!nom||!email||!pass) return msg('Remplissez tous les champs','');
+  try {
+    const r = await fetch(API+'/api/auth/inscription',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nom,email,mot_de_passe:pass})});
+    const d = await r.json();
+    if(d.token) {
+      token=d.token; userName=nom;
+      localStorage.setItem('sdi_token',token);
+      localStorage.setItem('sdi_name',userName);
+      msg('✅ Compte créé !',true);
+      setTimeout(startApp,800);
+    } else msg(d.message||'Erreur','');
+  } catch(e) { msg('Erreur serveur',''); }
+}
+function logout() {
+  localStorage.removeItem('sdi_token'); localStorage.removeItem('sdi_name');
+  token=null; clearInterval(refreshTimer);
+  document.getElementById('app-screen').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+}
 
-  if(token)afficherDashboard();
+// ── APP ───────────────────────────────────────────────
+function startApp() {
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app-screen').style.display='flex';
+  document.getElementById('app-screen').style.flexDirection='column';
+  document.getElementById('user-display').textContent=userName;
+  document.getElementById('set-nom').textContent=userName;
+  initCharts();
+  fetchData();
+  if(autoRefresh) refreshTimer = setInterval(fetchData,5000);
+}
 
-  function switchTab(tab){document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&tab==='connexion')||(i===1&&tab==='inscription')));document.getElementById('form-connexion').classList.toggle('active',tab==='connexion');document.getElementById('form-inscription').classList.toggle('active',tab==='inscription');}
-  function toggleMdp(id,btn){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';btn.textContent=i.type==='password'?'👁️':'🙈';}
+function showPage(name,btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='graphiques') { setTimeout(()=>{chartTemp.update();chartGaz.update();},100); }
+}
 
-  async function seConnecter(){
-    const email=document.getElementById('login-email').value.trim(),mdp=document.getElementById('login-mdp').value,btn=document.getElementById('btn-login'),msg=document.getElementById('msg-login');
-    if(!email||!mdp){showMsg(msg,'Veuillez remplir tous les champs.',false);return;}
-    btn.disabled=true;btn.textContent='Connexion...';
-    try{const r=await fetch(`${API}/api/auth/connexion`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,mot_de_passe:mdp})});const d=await r.json();if(!r.ok){showMsg(msg,d.erreur||'Erreur.',false);return;}token=d.token;userData=d.user;localStorage.setItem('sdi_token',token);localStorage.setItem('sdi_user',JSON.stringify(userData));showMsg(msg,'✅ Connexion réussie !',true);setTimeout(afficherDashboard,600);}
-    catch(e){showMsg(msg,'Serveur inaccessible.',false);}
-    finally{btn.disabled=false;btn.textContent='🔐 Se connecter';}
+// ── DATA ──────────────────────────────────────────────
+async function fetchData() {
+  try {
+    const r = await fetch(API+'/api/donnees',{headers:{'Authorization':'Bearer '+token}});
+    const d = await r.json();
+    if(!Array.isArray(d)||d.length===0) return;
+    const last = d[d.length-1];
+    updateAccueil(last,d);
+    updateCharts(d.slice(-30));
+    updateHistorique(d.slice(-20).reverse());
+    document.getElementById('sync-time').textContent = new Date().toLocaleTimeString();
+  } catch(e){}
+}
+
+function updateAccueil(last,all) {
+  const t = parseFloat(last.temperature)||0;
+  const g = parseInt(last.gaz)||0;
+  const f = last.flamme===true||last.flamme==='true'||last.flamme===1;
+
+  document.getElementById('val-temp').textContent = t.toFixed(1)+'°C';
+  document.getElementById('val-gaz').textContent = g;
+
+  const tPct = Math.min(100,(t/100)*100);
+  const gPct = Math.min(100,(g/1023)*100);
+  document.getElementById('bar-temp').style.width=tPct+'%';
+  document.getElementById('bar-gaz').style.width=gPct+'%';
+  document.getElementById('bar-temp').style.background = t>=50?'var(--danger)':t>=35?'var(--warn)':'var(--safe)';
+  document.getElementById('bar-gaz').style.background = g>=500?'var(--danger)':g>=300?'var(--warn)':'var(--safe)';
+
+  const stT = document.getElementById('st-temp');
+  const stG = document.getElementById('st-gaz');
+  if(t>=50){stT.textContent='⚠ DANGER';stT.className='card-status status-danger';}
+  else if(t>=35){stT.textContent='⚠ ATTENTION';stT.className='card-status status-warn';}
+  else{stT.textContent='✅ Normale';stT.className='card-status status-ok';}
+  if(g>=500){stG.textContent='⚠ FUITE';stG.className='card-status status-danger';}
+  else if(g>=300){stG.textContent='⚠ ATTENTION';stG.className='card-status status-warn';}
+  else{stG.textContent='✅ Normal';stG.className='card-status status-ok';}
+
+  const fi=document.getElementById('flame-indicator');
+  const ft=document.getElementById('flame-text');
+  if(f){fi.className='flame-indicator danger';fi.textContent='🔥';ft.textContent='FLAMME DÉTECTÉE !';ft.className='flame-text status-danger';}
+  else{fi.className='flame-indicator safe';fi.textContent='✅';ft.textContent='AUCUNE FLAMME DÉTECTÉE';ft.className='flame-text status-ok';}
+
+  // Stats
+  const temps = all.map(x=>parseFloat(x.temperature)||0);
+  const tmax = Math.max(...temps);
+  document.getElementById('stat-tmax').textContent = tmax.toFixed(1)+'°';
+  const inc = all.filter(x=>x.flamme===true||x.flamme==='true'||x.flamme===1).length;
+  const ag = all.filter(x=>(parseInt(x.gaz)||0)>=500).length;
+  const at = all.filter(x=>(parseFloat(x.temperature)||0)>=50).length;
+  document.getElementById('stat-inc').textContent=inc;
+  document.getElementById('stat-gaz').textContent=ag;
+  document.getElementById('stat-temp').textContent=at;
+
+  // INCENDIE DÉTECTÉ → activer caméra
+  const incendie = f || (t>=50 && g>=500);
+  if(incendie && !incendieActif) {
+    incendieActif = true;
+    activerCamera(t,g);
+  } else if(!incendie && incendieActif) {
+    incendieActif = false;
+    desactiverCamera();
   }
 
-  async function sInscrire(){
-    const nom=document.getElementById('reg-nom').value.trim(),email=document.getElementById('reg-email').value.trim(),mdp=document.getElementById('reg-mdp').value,mdp2=document.getElementById('reg-mdp2').value,btn=document.getElementById('btn-register'),msg=document.getElementById('msg-register');
-    if(!nom||!email||!mdp){showMsg(msg,'Veuillez remplir tous les champs.',false);return;}
-    if(mdp!==mdp2){showMsg(msg,'Les mots de passe ne correspondent pas.',false);return;}
-    if(mdp.length<8){showMsg(msg,'Mot de passe trop court.',false);return;}
-    btn.disabled=true;btn.textContent='Création...';
-    try{const r=await fetch(`${API}/api/auth/inscription`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nom,email,mot_de_passe:mdp})});const d=await r.json();if(!r.ok){showMsg(msg,d.erreur||'Erreur.',false);return;}token=d.token;userData=d.user;localStorage.setItem('sdi_token',token);localStorage.setItem('sdi_user',JSON.stringify(userData));showMsg(msg,'✅ Bienvenue '+nom+' !',true);setTimeout(afficherDashboard,800);}
-    catch(e){showMsg(msg,'Serveur inaccessible.',false);}
-    finally{btn.disabled=false;btn.textContent='✅ Créer mon compte';}
+  // Banner
+  const banner = document.getElementById('alert-banner');
+  if(incendie){banner.classList.add('show');}else{banner.classList.remove('show');}
+}
+
+// ── CAMÉRA ────────────────────────────────────────────
+function activerCamera(temp,gaz) {
+  // Badge
+  const badge = document.getElementById('cam-badge');
+  badge.textContent = '● EN DIRECT';
+  badge.className = 'camera-badge live';
+  document.getElementById('cam-status-text').textContent = '🔴 Incendie détecté — Transmission vidéo active';
+
+  // Vidéo
+  const vc = document.getElementById('video-container');
+  vc.classList.add('active');
+
+  // Lien
+  document.getElementById('cam-link-box').style.display='block';
+  const lien = 'https://sdi-api-0fsx.onrender.com/camera/live?token='+Date.now();
+  document.getElementById('cam-link-url').textContent = lien;
+
+  // SMS info
+  document.getElementById('sms-info').style.display='block';
+  document.getElementById('sms-proprio').textContent =
+    `🔥 ALERTE INCENDIE ! Temp:${temp}°C Gaz:${gaz}. Vidéo: ${lien}`;
+  document.getElementById('sms-auto').textContent =
+    `URGENT: Incendie détecté. Intervention requise. Stream: ${lien}`;
+
+  // Nav dot
+  document.getElementById('nav-camera').classList.add('alert');
+
+  // Notification
+  if(Notification.permission==='granted' && document.getElementById('tog-notif').checked){
+    new Notification('🔥 INCENDIE DÉTECTÉ',{body:'Caméra activée — Cliquez pour voir le stream',icon:'🔥'});
   }
+}
 
-  function afficherDashboard(){
-    document.getElementById('screen-auth').classList.remove('active');
-    document.getElementById('screen-dashboard').classList.add('active');
-    window.scrollTo(0,0);
-    document.getElementById('user-name').textContent=userData.nom||'--';
-    document.getElementById('user-avatar').textContent=(userData.nom||'?')[0].toUpperCase();
-    document.getElementById('set-nom').textContent=userData.nom||'--';
-    document.getElementById('set-email').textContent=userData.email||'--';
-    const t=localStorage.getItem('sdi_theme')||'night';
-    document.getElementById('th-'+t).classList.add('active');
-    chargerDerniere();chargerHistorique();
-    autoTimer=setInterval(chargerDerniere,5000);
-    setInterval(chargerStats,15000);
-  }
+function desactiverCamera() {
+  document.getElementById('cam-badge').textContent='⬤ VEILLE';
+  document.getElementById('cam-badge').className='camera-badge off';
+  document.getElementById('cam-status-text').textContent='La caméra s\'active automatiquement en cas de détection d\'incendie';
+  document.getElementById('video-container').classList.remove('active');
+  document.getElementById('cam-link-box').style.display='none';
+  document.getElementById('sms-info').style.display='none';
+  document.getElementById('nav-camera').classList.remove('alert');
+}
 
-  function seDeconnecter(){clearInterval(autoTimer);token=null;userData={};localStorage.removeItem('sdi_token');localStorage.removeItem('sdi_user');document.getElementById('screen-dashboard').classList.remove('active');document.getElementById('screen-auth').classList.add('active');document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active',i===0));}
+function copyLink() {
+  const url = document.getElementById('cam-link-url').textContent;
+  navigator.clipboard.writeText(url).then(()=>alert('✅ Lien copié !'));
+}
 
-  function goTo(page,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+page).classList.add('active');btn.classList.add('active');document.getElementById('scroll').scrollTop=0;if(page==='history')chargerHistorique();if(page==='charts')updateCharts();}
+// ── CHARTS ────────────────────────────────────────────
+function initCharts() {
+  const cfg = (label,color) => ({
+    type:'line',
+    data:{labels:[],datasets:[{label,data:[],borderColor:color,backgroundColor:color+'22',borderWidth:2,fill:true,tension:0.4,pointRadius:2}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#a08060',font:{size:9}},grid:{color:'#2a1500'}},y:{ticks:{color:'#a08060',font:{size:9}},grid:{color:'#2a1500'}}}}
+  });
+  chartTemp = new Chart(document.getElementById('chart-temp'),cfg('Température','#ff6600'));
+  chartGaz = new Chart(document.getElementById('chart-gaz'),cfg('Gaz MQ-2','#ff2200'));
+}
 
-  const mkC=(id,color)=>new Chart(document.getElementById(id).getContext('2d'),{type:'line',data:{labels:[],datasets:[{data:[],borderColor:color,backgroundColor:color+'18',borderWidth:2,pointRadius:2,tension:.4,fill:true}]},options:{responsive:true,animation:{duration:300},plugins:{legend:{display:false}},scales:{x:{ticks:{color:getComputedStyle(document.documentElement).getPropertyValue('--muted').trim(),font:{size:9,family:'Share Tech Mono'},maxTicksLimit:6},grid:{color:getComputedStyle(document.documentElement).getPropertyValue('--border').trim()}},y:{ticks:{color:getComputedStyle(document.documentElement).getPropertyValue('--muted').trim(),font:{size:9,family:'Share Tech Mono'}},grid:{color:getComputedStyle(document.documentElement).getPropertyValue('--border').trim()}}}}});
-  const cT=mkC('ct','#e65c00'),cG=mkC('cg','#f9a825');
+function updateCharts(data) {
+  const lbls = data.map(x=>new Date(x.date_heure||x.createdAt).toLocaleTimeString());
+  const temps = data.map(x=>parseFloat(x.temperature)||0);
+  const gazs = data.map(x=>parseInt(x.gaz)||0);
+  chartTemp.data.labels=lbls; chartTemp.data.datasets[0].data=temps; chartTemp.update();
+  chartGaz.data.labels=lbls; chartGaz.data.datasets[0].data=gazs; chartGaz.update();
+}
 
-  function updateCharts(){const gc=getComputedStyle(document.documentElement).getPropertyValue('--border').trim(),tc=getComputedStyle(document.documentElement).getPropertyValue('--muted').trim();[cT,cG].forEach(c=>{c.options.scales.x.grid.color=gc;c.options.scales.y.grid.color=gc;c.options.scales.x.ticks.color=tc;c.options.scales.y.ticks.color=tc;c.update();});if(!histData.length)return;const rev=[...histData].reverse().slice(-30),labels=rev.map(d=>new Date(d.date_heure).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}));cT.data.labels=labels;cT.data.datasets[0].data=rev.map(d=>parseFloat(d.temperature).toFixed(1));cT.update();cG.data.labels=labels;cG.data.datasets[0].data=rev.map(d=>d.gaz);cG.update();}
+// ── HISTORIQUE ────────────────────────────────────────
+function updateHistorique(data) {
+  const tb = document.getElementById('hist-body');
+  tb.innerHTML = data.map(x=>{
+    const t=parseFloat(x.temperature)||0;
+    const g=parseInt(x.gaz)||0;
+    const f=x.flamme===true||x.flamme==='true'||x.flamme===1;
+    const inc=f||(t>=50&&g>=500);
+    const badge = inc?'<span class="badge badge-danger">INCENDIE</span>':
+                  (t>=50||g>=500)?'<span class="badge badge-warn">ALERTE</span>':
+                  '<span class="badge badge-ok">NORMAL</span>';
+    const dt = new Date(x.date_heure||x.createdAt).toLocaleString();
+    return `<tr><td>${dt}</td><td>${t.toFixed(1)}°C</td><td>${g}</td><td>${f?'🔥 OUI':'✅ NON'}</td><td>${badge}</td></tr>`;
+  }).join('');
+}
 
-  async function chargerDerniere(){try{const r=await authFetch('/api/dernieres-donnees');if(r.status===401){seDeconnecter();return;}const d=await r.json();if(!d||!d.id)return;const temp=parseFloat(d.temperature),gaz=parseInt(d.gaz),flamme=d.flamme===true||d.flamme==1;document.getElementById('v-temp').innerHTML=temp.toFixed(1)+'<span class="sc-unit">°C</span>';setBar('b-temp',Math.min(temp/80*100,100),temp>=50,temp>=40);const st=document.getElementById('s-temp');if(temp>=50){st.textContent='⚠ DANGER';st.className='sc-state bad';}else if(temp>=40){st.textContent='⚡ Élevée';st.className='sc-state warn';}else{st.textContent='✅ Normale';st.className='sc-state ok';}setCard('card-temp','v-temp',temp>=50,temp>=40);document.getElementById('v-gaz').textContent=gaz;setBar('b-gaz',Math.min(gaz/1000*100,100),gaz>=500,gaz>=300);const sg=document.getElementById('s-gaz');if(gaz>=500){sg.textContent='⚠ FUITE';sg.className='sc-state bad';}else if(gaz>=300){sg.textContent='⚡ Élevé';sg.className='sc-state warn';}else{sg.textContent='✅ Normal';sg.className='sc-state ok';}setCard('card-gaz','v-gaz',gaz>=500,gaz>=300);const fi=document.getElementById('f-icon'),ft=document.getElementById('f-text'),fc=document.getElementById('card-flamme');if(flamme){fi.textContent='🔥';fi.className='flame-emoji on';ft.textContent='🚨 FLAMME DÉTECTÉE !';ft.className='fi-val bad';fc.classList.add('fire');document.getElementById('banner').style.display='block';if(notifOk)new Notification('🔥 INCENDIE',{body:'Vérifiez immédiatement !'});}else{fi.textContent='🟢';fi.className='flame-emoji';ft.textContent='AUCUNE FLAMME DÉTECTÉE';ft.className='fi-val ok';fc.classList.remove('fire');document.getElementById('banner').style.display='none';}document.getElementById('sync-time').textContent='⟳ Sync : '+new Date().toLocaleTimeString('fr-FR');}catch(e){}}
+function exportCSV() {
+  fetch(API+'/api/donnees',{headers:{'Authorization':'Bearer '+token}})
+    .then(r=>r.json()).then(data=>{
+      const rows=[['Date','Temperature','Gaz','Flamme'],...data.map(x=>[x.date_heure||x.createdAt,x.temperature,x.gaz,x.flamme?'OUI':'NON'])];
+      const csv='\uFEFF'+rows.map(r=>r.join(';')).join('\n');
+      const a=document.createElement('a');
+      a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+      a.download='sidirt_historique.csv'; a.click();
+    });
+}
 
-  async function chargerStats(){try{const r=await authFetch('/api/statistiques'),s=await r.json();document.getElementById('st-inc').textContent=s.incendie??'--';document.getElementById('st-gaz2').textContent=s.gaz??'--';document.getElementById('st-temp2').textContent=s.temp??'--';if(histData.length){const temps=histData.map(d=>parseFloat(d.temperature));document.getElementById('st-tmax').textContent=Math.max(...temps).toFixed(1)+'°';}}catch(e){}}
+// ── RÉGLAGES ──────────────────────────────────────────
+function setTheme(t,btn) {
+  document.body.className=t?'theme-'+t:'';
+  document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function toggleAuto() {
+  autoRefresh=document.getElementById('tog-auto').checked;
+  clearInterval(refreshTimer);
+  if(autoRefresh) refreshTimer=setInterval(fetchData,5000);
+}
 
-  async function chargerHistorique(){try{const r=await authFetch('/api/historique');histData=await r.json();const list=document.getElementById('hist-list');if(!histData.length){list.innerHTML='<p style="color:var(--muted);text-align:center;padding:1.5rem">Aucune donnée</p>';return;}list.innerHTML=histData.map(d=>{const temp=parseFloat(d.temperature),gaz=parseInt(d.gaz),flamme=d.flamme===true||d.flamme==1,cls=flamme?'danger':(gaz>=500||temp>=50)?'warn':'ok',label=flamme?'INCENDIE':(gaz>=500||temp>=50)?'ALERTE':'NORMAL';return'<div class="hist-item"><div><div class="hi-date">'+new Date(d.date_heure).toLocaleString('fr-FR')+'</div><div class="hi-vals">🌡 '+temp.toFixed(1)+'°C &nbsp;💨 '+gaz+' &nbsp;'+(flamme?'🔥':'🟢')+'</div></div><span class="hi-badge '+cls+'">'+label+'</span></div>';}).join('');chargerStats();updateCharts();}catch(e){}}
+// ── INIT ──────────────────────────────────────────────
+if(token) startApp();
 
-  function exportCSV(){if(!histData.length){toast('Aucune donnée');return;}const h=['ID','Date/Heure','Température','Gaz','Flamme','Statut'],rows=histData.map(d=>{const t=parseFloat(d.temperature),g=parseInt(d.gaz),f=d.flamme===true||d.flamme==1;return[d.id,'"'+new Date(d.date_heure).toLocaleString('fr-FR')+'"',t.toFixed(1),g,f?'OUI':'NON',f?'INCENDIE':(g>=500||t>=50)?'ALERTE':'NORMAL'].join(',');});const blob=new Blob(['\uFEFF'+[h.join(','),...rows].join('\n')],{type:'text/csv;charset=utf-8;'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='sidirt_'+new Date().toISOString().slice(0,10)+'.csv';a.click();toast('✅ CSV exporté !');}
-
-  function authFetch(url,opts={}){return fetch(API+url,{...opts,headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,...(opts.headers||{})}});}
-  function setBar(id,pct,danger,warn){const el=document.getElementById(id);el.style.width=pct+'%';el.style.background=danger?'var(--ember)':warn?'var(--fire2)':'var(--green)';}
-  function setCard(cid,vid,danger,warn){document.getElementById(cid).classList.toggle('alerte',danger||warn);document.getElementById(cid).classList.toggle('feu',danger);document.getElementById(vid).classList.toggle('danger',danger);document.getElementById(vid).classList.toggle('warn',warn&&!danger);}
-  function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
-  function forceRefresh(){chargerDerniere();chargerHistorique();toast('🔄 Actualisation...');}
-  function toggleAuto(cb){if(cb.checked){autoTimer=setInterval(chargerDerniere,5000);toast('✅ Auto activé');}else{clearInterval(autoTimer);toast('⏸ Auto pausé');}}
-  function toggleNotif(cb){if(cb.checked&&'Notification'in window){Notification.requestPermission().then(p=>{notifOk=p==='granted';toast(notifOk?'🔔 Notifs activées':'❌ Permission refusée');if(!notifOk)cb.checked=false;});}else{notifOk=false;toast('🔕 Notifs off');}}
-  function showMsg(el,msg,ok){el.textContent=msg;el.className='auth-msg'+(ok?' success':'');}
-  window.addEventListener('online',()=>{toast('✅ Connexion rétablie');chargerDerniere();});
-  window.addEventListener('offline',()=>toast('⚠️ Hors ligne'));
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+if('Notification' in window && Notification.permission==='default') {
+  Notification.requestPermission();
+}
 </script>
 </body>
 </html>
