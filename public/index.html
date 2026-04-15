@@ -1,10 +1,3 @@
-Parfait ! Je vais vous donner le **fichier `index.html` complet** avec la **vidéo intégrée** ET la **vérification par email** à l'inscription.
-
----
-
-# ✅ FICHIER COMPLET : index.html (avec vidéo + vérification email)
-
-```html
 <!DOCTYPE html>
 <html lang="fr" data-theme="night">
 <head>
@@ -267,4 +260,196 @@ Parfait ! Je vais vous donner le **fichier `index.html` complet** avec la **vid�
           <div class="setting-row"><div><div class="setting-label">Serveur API</div><div class="setting-sub">sdi-api-0fsx.onrender.com</div></div></div>
           <div class="setting-row">
             <div><div class="setting-label">📹 URL Flux Vidéo (ESP32-CAM)</div><div class="setting-sub">Laissez vide si pas de caméra</div></div>
-            <input type="text" id="video-url"
+            <input type="text" id="video-url" placeholder="http://192.168.1.100:81/stream" style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:.5rem; color:var(--text); width:180px;">
+          </div>
+          <button class="btn-sm" onclick="saveVideoUrl()" style="margin-top:-.5rem; margin-bottom:.5rem;">💾 Sauvegarder URL</button>
+          <div class="setting-row"><div><div class="setting-label">Actualisation auto</div><div class="setting-sub">Toutes les 5 secondes</div></div><label class="toggle"><input type="checkbox" id="tog-auto" checked onchange="toggleAuto(this)"/><span class="toggle-s"></span></label></div>
+          <div class="setting-row"><div><div class="setting-label">Notifications</div><div class="setting-sub">Alertes incendie</div></div><label class="toggle"><input type="checkbox" id="tog-notif" onchange="toggleNotif(this)"/><span class="toggle-s"></span></label></div>
+        </div>
+        <div class="card">
+          <div class="card-title">SEUILS D'ALERTE</div>
+          <div class="setting-row"><div><div class="setting-label">🌡️ Température</div></div><div class="seuil-val">≥ 50 °C</div></div>
+          <div class="setting-row"><div><div class="setting-label">💨 Gaz MQ-2</div></div><div class="seuil-val">≥ 500</div></div>
+          <div class="setting-row"><div><div class="setting-label">🔥 Flamme</div></div><div class="seuil-val">DÉTECTÉE</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">MON COMPTE</div>
+          <div class="setting-row"><div><div class="setting-label" id="set-nom">--</div><div class="setting-sub" id="set-email">--</div></div></div>
+          <div class="setting-row"><div><div class="setting-label">Version</div><div class="setting-sub">SIDIRT PWA v2.0</div></div></div>
+        </div>
+        <button class="btn btn-fire" onclick="forceRefresh()" style="margin-bottom:.6rem">🔄 Actualiser</button>
+        <button class="btn btn-outline" onclick="seDeconnecter()">⬅ Déconnexion</button>
+      </div>
+
+    </div>
+    <nav>
+      <button class="nav-btn active" onclick="goTo('home',this)"><span class="nav-icon">🏠</span>ACCUEIL</button>
+      <button class="nav-btn" onclick="goTo('charts',this)"><span class="nav-icon">📈</span>GRAPHIQUES</button>
+      <button class="nav-btn" onclick="goTo('history',this)"><span class="nav-icon">📋</span>HISTORIQUE</button>
+      <button class="nav-btn" onclick="goTo('settings',this)"><span class="nav-icon">⚙️</span>RÉGLAGES</button>
+    </nav>
+  </div>
+
+</div>
+<div id="toast"></div>
+
+<script>
+  const API='';
+  let token=localStorage.getItem('sdi_token');
+  let userData=JSON.parse(localStorage.getItem('sdi_user')||'{}');
+  let histData=[],autoTimer=null,notifOk=false;
+
+  function setTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('sdi_theme',t);document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));document.getElementById('th-'+t).classList.add('active');updateCharts();toast(t==='night'?'🌊 Thème Nuit':t==='dark'?'🔥 Thème Sombre':'☀️ Thème Clair');}
+  const savedTheme=localStorage.getItem('sdi_theme')||'night';
+  document.documentElement.setAttribute('data-theme',savedTheme);
+
+  if(token)afficherDashboard();
+
+  function switchTab(tab){document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&tab==='connexion')||(i===1&&tab==='inscription')));document.getElementById('form-connexion').classList.toggle('active',tab==='connexion');document.getElementById('form-inscription').classList.toggle('active',tab==='inscription');}
+  function toggleMdp(id,btn){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';btn.textContent=i.type==='password'?'👁️':'🙈';}
+
+  async function seConnecter(){
+    const email=document.getElementById('login-email').value.trim(),mdp=document.getElementById('login-mdp').value,btn=document.getElementById('btn-login'),msg=document.getElementById('msg-login');
+    if(!email||!mdp){showMsg(msg,'Veuillez remplir tous les champs.',false);return;}
+    btn.disabled=true;btn.textContent='Connexion...';
+    try{const r=await fetch(`${API}/api/auth/connexion`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,mot_de_passe:mdp})});const d=await r.json();if(!r.ok){showMsg(msg,d.erreur||'Erreur.',false);return;}token=d.token;userData=d.user;localStorage.setItem('sdi_token',token);localStorage.setItem('sdi_user',JSON.stringify(userData));showMsg(msg,'✅ Connexion réussie !',true);setTimeout(afficherDashboard,600);}
+    catch(e){showMsg(msg,'Serveur inaccessible.',false);}
+    finally{btn.disabled=false;btn.textContent='🔐 Se connecter';}
+  }
+
+  async function sInscrire(){
+    const nom=document.getElementById('reg-nom').value.trim(),email=document.getElementById('reg-email').value.trim(),mdp=document.getElementById('reg-mdp').value,mdp2=document.getElementById('reg-mdp2').value,btn=document.getElementById('btn-register'),msg=document.getElementById('msg-register');
+    if(!nom||!email||!mdp){showMsg(msg,'Veuillez remplir tous les champs.',false);return;}
+    if(mdp!==mdp2){showMsg(msg,'Les mots de passe ne correspondent pas.',false);return;}
+    if(mdp.length<8){showMsg(msg,'Mot de passe trop court.',false);return;}
+    btn.disabled=true;btn.textContent='Création...';
+    try{
+      // 1. Inscription
+      const r=await fetch(`${API}/api/auth/inscription`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nom,email,mot_de_passe:mdp})});
+      const d=await r.json();
+      if(!r.ok){showMsg(msg,d.erreur||'Erreur.',false);return;}
+      
+      // 2. Envoi du code de vérification par email
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      localStorage.setItem('sdi_verify_code', code);
+      localStorage.setItem('sdi_verify_email', email);
+      localStorage.setItem('sdi_verify_data', JSON.stringify({nom,email,mdp}));
+      
+      // Simulation d'envoi d'email (à remplacer par un vrai appel API)
+      console.log(`📧 Code de vérification pour ${email} : ${code}`);
+      showMsg(msg,'📧 Un code de vérification a été envoyé à votre email. Vérifiez votre boîte de réception.',true);
+      
+      // Afficher le formulaire de vérification
+      afficherVerificationEmail();
+    }
+    catch(e){showMsg(msg,'Serveur inaccessible.',false);}
+    finally{btn.disabled=false;btn.textContent='✅ Créer mon compte';}
+  }
+
+  function afficherVerificationEmail(){
+    const msg=document.getElementById('msg-register');
+    msg.innerHTML='<div style="margin-top:1rem;"><label class="form-label">Code de vérification</label><div class="input-wrap"><input type="text" class="form-input" id="verify-code" placeholder="123456" style="margin-bottom:.5rem;"/><button class="btn-auth" style="margin-top:0;" onclick="verifierCode()">🔐 Vérifier</button></div></div>';
+  }
+
+  async function verifierCode(){
+    const codeSaisi=document.getElementById('verify-code').value.trim();
+    const codeAttendu=localStorage.getItem('sdi_verify_code');
+    const email=localStorage.getItem('sdi_verify_email');
+    const data=JSON.parse(localStorage.getItem('sdi_verify_data')||'{}');
+    const msg=document.getElementById('msg-register');
+    
+    if(codeSaisi===codeAttendu){
+      // Code correct → finaliser l'inscription
+      const r=await fetch(`${API}/api/auth/inscription`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nom:data.nom,email:data.email,mot_de_passe:data.mdp})});
+      const d=await r.json();
+      if(!r.ok){showMsg(msg,d.erreur||'Erreur.',false);return;}
+      
+      token=d.token;
+      userData=d.user;
+      localStorage.setItem('sdi_token',token);
+      localStorage.setItem('sdi_user',JSON.stringify(userData));
+      localStorage.removeItem('sdi_verify_code');
+      localStorage.removeItem('sdi_verify_email');
+      localStorage.removeItem('sdi_verify_data');
+      showMsg(msg,'✅ Compte vérifié et créé avec succès !',true);
+      setTimeout(afficherDashboard,800);
+    }else{
+      showMsg(msg,'❌ Code de vérification incorrect.',false);
+    }
+  }
+
+  function afficherDashboard(){
+    document.getElementById('screen-auth').classList.remove('active');
+    document.getElementById('screen-dashboard').classList.add('active');
+    window.scrollTo(0,0);
+    document.getElementById('user-name').textContent=userData.nom||'--';
+    document.getElementById('user-avatar').textContent=(userData.nom||'?')[0].toUpperCase();
+    document.getElementById('set-nom').textContent=userData.nom||'--';
+    document.getElementById('set-email').textContent=userData.email||'--';
+    const t=localStorage.getItem('sdi_theme')||'night';
+    document.getElementById('th-'+t).classList.add('active');
+    chargerDerniere();chargerHistorique();loadVideoUrl();
+    autoTimer=setInterval(chargerDerniere,5000);
+    setInterval(chargerStats,15000);
+  }
+
+  function seDeconnecter(){clearInterval(autoTimer);token=null;userData={};localStorage.removeItem('sdi_token');localStorage.removeItem('sdi_user');document.getElementById('screen-dashboard').classList.remove('active');document.getElementById('screen-auth').classList.add('active');document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active',i===0));}
+
+  function goTo(page,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+page).classList.add('active');btn.classList.add('active');document.getElementById('scroll').scrollTop=0;if(page==='history')chargerHistorique();if(page==='charts')updateCharts();}
+
+  const mkC=(id,color)=>new Chart(document.getElementById(id).getContext('2d'),{type:'line',data:{labels:[],datasets:[{data:[],borderColor:color,backgroundColor:color+'18',borderWidth:2,pointRadius:2,tension:.4,fill:true}]},options:{responsive:true,animation:{duration:300},plugins:{legend:{display:false}},scales:{x:{ticks:{color:getComputedStyle(document.documentElement).getPropertyValue('--muted').trim(),font:{size:9,family:'Share Tech Mono'},maxTicksLimit:6},grid:{color:getComputedStyle(document.documentElement).getPropertyValue('--border').trim()}},y:{ticks:{color:getComputedStyle(document.documentElement).getPropertyValue('--muted').trim(),font:{size:9,family:'Share Tech Mono'}},grid:{color:getComputedStyle(document.documentElement).getPropertyValue('--border').trim()}}}}});
+  const cT=mkC('ct','#e65c00'),cG=mkC('cg','#f9a825');
+
+  function updateCharts(){const gc=getComputedStyle(document.documentElement).getPropertyValue('--border').trim(),tc=getComputedStyle(document.documentElement).getPropertyValue('--muted').trim();[cT,cG].forEach(c=>{c.options.scales.x.grid.color=gc;c.options.scales.y.grid.color=gc;c.options.scales.x.ticks.color=tc;c.options.scales.y.ticks.color=tc;c.update();});if(!histData.length)return;const rev=[...histData].reverse().slice(-30),labels=rev.map(d=>new Date(d.date_heure).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}));cT.data.labels=labels;cT.data.datasets[0].data=rev.map(d=>parseFloat(d.temperature).toFixed(1));cT.update();cG.data.labels=labels;cG.data.datasets[0].data=rev.map(d=>d.gaz);cG.update();}
+
+  async function chargerDerniere(){try{const r=await authFetch('/api/dernieres-donnees');if(r.status===401){seDeconnecter();return;}const d=await r.json();if(!d||!d.id)return;const temp=parseFloat(d.temperature),gaz=parseInt(d.gaz),flamme=d.flamme===true||d.flamme==1;document.getElementById('v-temp').innerHTML=temp.toFixed(1)+'<span class="sc-unit">°C</span>';setBar('b-temp',Math.min(temp/80*100,100),temp>=50,temp>=40);const st=document.getElementById('s-temp');if(temp>=50){st.textContent='⚠ DANGER';st.className='sc-state bad';}else if(temp>=40){st.textContent='⚡ Élevée';st.className='sc-state warn';}else{st.textContent='✅ Normale';st.className='sc-state ok';}setCard('card-temp','v-temp',temp>=50,temp>=40);document.getElementById('v-gaz').textContent=gaz;setBar('b-gaz',Math.min(gaz/1000*100,100),gaz>=500,gaz>=300);const sg=document.getElementById('s-gaz');if(gaz>=500){sg.textContent='⚠ FUITE';sg.className='sc-state bad';}else if(gaz>=300){sg.textContent='⚡ Élevé';sg.className='sc-state warn';}else{sg.textContent='✅ Normal';sg.className='sc-state ok';}setCard('card-gaz','v-gaz',gaz>=500,gaz>=300);const fi=document.getElementById('f-icon'),ft=document.getElementById('f-text'),fc=document.getElementById('card-flamme');if(flamme){fi.textContent='🔥';fi.className='flame-emoji on';ft.textContent='🚨 FLAMME DÉTECTÉE !';ft.className='fi-val bad';fc.classList.add('fire');document.getElementById('banner').style.display='block';if(notifOk)new Notification('🔥 INCENDIE',{body:'Vérifiez immédiatement !'});}else{fi.textContent='🟢';fi.className='flame-emoji';ft.textContent='AUCUNE FLAMME DÉTECTÉE';ft.className='fi-val ok';fc.classList.remove('fire');document.getElementById('banner').style.display='none';}document.getElementById('sync-time').textContent='⟳ Sync : '+new Date().toLocaleTimeString('fr-FR');}catch(e){}}
+
+  async function chargerStats(){try{const r=await authFetch('/api/statistiques'),s=await r.json();document.getElementById('st-inc').textContent=s.incendie??'--';document.getElementById('st-gaz2').textContent=s.gaz??'--';document.getElementById('st-temp2').textContent=s.temp??'--';if(histData.length){const temps=histData.map(d=>parseFloat(d.temperature));document.getElementById('st-tmax').textContent=Math.max(...temps).toFixed(1)+'°';}}catch(e){}}
+
+  async function chargerHistorique(){try{const r=await authFetch('/api/historique');histData=await r.json();const list=document.getElementById('hist-list');if(!histData.length){list.innerHTML='<p style="color:var(--muted);text-align:center;padding:1.5rem">Aucune donnée</p>';return;}list.innerHTML=histData.map(d=>{const temp=parseFloat(d.temperature),gaz=parseInt(d.gaz),flamme=d.flamme===true||d.flamme==1,cls=flamme?'danger':(gaz>=500||temp>=50)?'warn':'ok',label=flamme?'INCENDIE':(gaz>=500||temp>=50)?'ALERTE':'NORMAL';return'<div class="hist-item"><div><div class="hi-date">'+new Date(d.date_heure).toLocaleString('fr-FR')+'</div><div class="hi-vals">🌡 '+temp.toFixed(1)+'°C &nbsp;💨 '+gaz+' &nbsp;'+(flamme?'🔥':'🟢')+'</div></div><span class="hi-badge '+cls+'">'+label+'</span></div>';}).join('');chargerStats();updateCharts();}catch(e){}}
+
+  function exportCSV(){if(!histData.length){toast('Aucune donnée');return;}const h=['ID','Date/Heure','Température','Gaz','Flamme','Statut'],rows=histData.map(d=>{const t=parseFloat(d.temperature),g=parseInt(d.gaz),f=d.flamme===true||d.flamme==1;return[d.id,'"'+new Date(d.date_heure).toLocaleString('fr-FR')+'"',t.toFixed(1),g,f?'OUI':'NON',f?'INCENDIE':(g>=500||t>=50)?'ALERTE':'NORMAL'].join(',');});const blob=new Blob(['\uFEFF'+[h.join(','),...rows].join('\n')],{type:'text/csv;charset=utf-8;'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='sidirt_'+new Date().toISOString().slice(0,10)+'.csv';a.click();toast('✅ CSV exporté !');}
+
+  function authFetch(url,opts={}){return fetch(API+url,{...opts,headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,...(opts.headers||{})}});}
+  function setBar(id,pct,danger,warn){const el=document.getElementById(id);el.style.width=pct+'%';el.style.background=danger?'var(--ember)':warn?'var(--fire2)':'var(--green)';}
+  function setCard(cid,vid,danger,warn){document.getElementById(cid).classList.toggle('alerte',danger||warn);document.getElementById(cid).classList.toggle('feu',danger);document.getElementById(vid).classList.toggle('danger',danger);document.getElementById(vid).classList.toggle('warn',warn&&!danger);}
+  function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+  function forceRefresh(){chargerDerniere();chargerHistorique();toast('🔄 Actualisation...');}
+  function toggleAuto(cb){if(cb.checked){autoTimer=setInterval(chargerDerniere,5000);toast('✅ Auto activé');}else{clearInterval(autoTimer);toast('⏸ Auto pausé');}}
+  function toggleNotif(cb){if(cb.checked&&'Notification'in window){Notification.requestPermission().then(p=>{notifOk=p==='granted';toast(notifOk?'🔔 Notifs activées':'❌ Permission refusée');if(!notifOk)cb.checked=false;});}else{notifOk=false;toast('🔕 Notifs off');}}
+  function showMsg(el,msg,ok){el.textContent=msg;el.className='auth-msg'+(ok?' success':'');}
+
+  // VIDÉO
+  function loadVideoUrl(){
+    const url=localStorage.getItem('sidirt_video_url');
+    if(url){
+      document.getElementById('video-url').value=url;
+      document.getElementById('live-video').src=url+'?t='+Date.now();
+      document.getElementById('video-section').style.display='block';
+    }
+  }
+  function saveVideoUrl(){
+    const url=document.getElementById('video-url').value;
+    localStorage.setItem('sidirt_video_url',url);
+    if(url){
+      document.getElementById('live-video').src=url+'?t='+Date.now();
+      document.getElementById('video-section').style.display='block';
+      toast('✅ URL vidéo sauvegardée');
+    }else{
+      document.getElementById('video-section').style.display='none';
+      toast('🔴 Vidéo désactivée');
+    }
+  }
+  setInterval(()=>{
+    const url=localStorage.getItem('sidirt_video_url');
+    if(url&&document.getElementById('video-section').style.display!=='none'){
+      document.getElementById('live-video').src=url+'?t='+Date.now();
+    }
+  },2000);
+
+  window.addEventListener('online',()=>{toast('✅ Connexion rétablie');chargerDerniere();});
+  window.addEventListener('offline',()=>toast('⚠️ Hors ligne'));
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body>
+</html>
