@@ -88,7 +88,7 @@ app.post('/api/auth/envoyer-code', async (req, res) => {
                 'api-key': apiKey
             },
             body: JSON.stringify({
-                sender: { name: 'SIDIRT', email: 'noreply@sidirt.com' },
+                sender: { name: 'SIDIRT', email: 'alainaikpon9@gmail.com' },
                 to: [{ email: email }],
                 subject: '🔐 Code de vérification SIDIRT',
                 htmlContent: `
