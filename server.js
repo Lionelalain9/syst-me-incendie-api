@@ -1,6 +1,6 @@
 // ============================================================
 //   SYSTÈME DE DÉTECTION INCENDIE — SERVEUR SaaS v2.0
-//   Authentification JWT + PostgreSQL + Email (Resend)
+//   Authentification JWT + PostgreSQL
 // ============================================================
 
 const express  = require('express');
@@ -10,14 +10,10 @@ const jwt      = require('jsonwebtoken');
 const cors     = require('cors');
 const path     = require('path');
 const crypto   = require('crypto');
-const { Resend } = require('resend');
 require('dotenv').config();
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
-
-// Initialisation Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 app.use(cors());
 app.use(express.json());
@@ -58,70 +54,6 @@ function genToken(user) {
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-
-// ============================================================
-//   ROUTES DE VÉRIFICATION PAR EMAIL (RESEND)
-// ============================================================
-
-// ── Vérifier si l'email existe déjà ─────────────────────────
-app.post('/api/auth/verifier-email', async (req, res) => {
-    try {
-        const { email } = req.body;
-        const result = await pool.query('SELECT id FROM utilisateurs WHERE email=$1', [email.toLowerCase()]);
-        res.json({ existe: result.rows.length > 0 });
-    } catch (err) {
-        console.error('Erreur vérification email:', err);
-        res.status(500).json({ erreur: 'Erreur serveur' });
-    }
-});
-
-// ── Envoyer un code de vérification par email (Resend) ──────
-app.post('/api/auth/envoyer-code', async (req, res) => {
-    try {
-        const { email, code } = req.body;
-        
-        if (!process.env.RESEND_API_KEY) {
-            return res.status(500).json({ erreur: 'Clé API Resend non configurée' });
-        }
-        
-        const { data, error } = await resend.emails.send({
-            from: 'onboarding@resend.dev',
-            to: [email],
-            subject: '🔐 Code de vérification SIDIRT',
-            html: `
-                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; background: #0a0e1a; color: #e2e8f0; padding: 30px; border-radius: 20px;">
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <span style="font-size: 3rem;">🔥</span>
-                        <h2 style="color: #e65c00;">SIDIRT</h2>
-                        <p style="color: #4a6080;">Système Intelligent de Détection d'Incendie</p>
-                    </div>
-                    <div style="background: #111827; padding: 20px; border-radius: 12px; text-align: center;">
-                        <h3>Votre code de vérification</h3>
-                        <div style="font-size: 2rem; letter-spacing: 5px; background: #1a2236; padding: 15px; border-radius: 10px; margin: 20px 0; font-weight: bold;">
-                            ${code}
-                        </div>
-                        <p>Ce code expire dans 10 minutes.</p>
-                        <p style="font-size: 0.8rem; color: #4a6080;">Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
-                    </div>
-                </div>
-            `
-        });
-        
-        if (error) {
-            console.error('Erreur Resend:', error);
-            return res.status(500).json({ erreur: "Erreur d'envoi d'email" });
-        }
-        
-        res.json({ message: 'Code envoyé avec succès' });
-    } catch (err) {
-        console.error('Erreur envoi email:', err);
-        res.status(500).json({ erreur: 'Erreur serveur' });
-    }
-});
-
-// ============================================================
-//   ROUTES PRINCIPALES
-// ============================================================
 
 // ── Inscription ──────────────────────────────────────────────
 app.post('/api/auth/inscription', async (req, res) => {
