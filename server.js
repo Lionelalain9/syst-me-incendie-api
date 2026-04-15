@@ -55,6 +55,10 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// ============================================================
+//   ROUTES D'AUTHENTIFICATION
+// ============================================================
+
 // ── Inscription ──────────────────────────────────────────────
 app.post('/api/auth/inscription', async (req, res) => {
     try {
@@ -121,6 +125,10 @@ app.post('/api/auth/connexion', async (req, res) => {
         res.status(500).json({ erreur: 'Erreur serveur lors de la connexion.' });
     }
 });
+
+// ============================================================
+//   ROUTES DONNÉES CAPTEURS
+// ============================================================
 
 // ── Données ESP32 ────────────────────────────────────────────
 app.post('/api/capteur/donnees', async (req, res) => {
