@@ -43,6 +43,9 @@
     .toggle.active::after { left: 22px; }
     .btn-csv { background: linear-gradient(135deg, #e65c00, #ff8c42); border: none; padding: 0.5rem 1rem; border-radius: 30px; color: white; cursor: pointer; }
     .sync-info { text-align: center; font-size: 0.7rem; color: #8a9bb5; margin-top: 1rem; }
+    .camera-link { text-align: center; margin-top: 0.5rem; }
+    .camera-link a { color: #e65c00; text-decoration: none; font-weight: bold; background: rgba(230,92,0,0.1); padding: 0.3rem 1rem; border-radius: 30px; display: inline-block; gap: 5px; transition: 0.2s; }
+    .camera-link a:hover { background: rgba(230,92,0,0.3); transform: scale(1.02); }
     @media (max-width: 768px) { .stats-grid, .sensors-grid { grid-template-columns: 1fr; } .nav-btn span { display: none; } }
   </style>
 </head>
@@ -70,10 +73,13 @@
       <div class="stat-card"><div class="stat-value" id="stat-alertes-temp">0</div><div class="stat-label">Alertes température</div></div>
     </div>
 
-    <!-- VIDÉO VIA PROXY -->
+    <!-- VIDÉO -->
     <div class="card">
       <div class="card-title" style="font-size:0.7rem; text-transform:uppercase; color:#8a9bb5; margin-bottom:0.5rem"><i class="fas fa-video"></i> VIDÉO ESP32-CAM</div>
       <img id="live-video" class="video-frame" src="/api/camera-proxy" alt="Flux vidéo">
+      <div class="camera-link">
+        <a href="http://10.76.24.100:81/stream" target="_blank"><i class="fas fa-external-link-alt"></i> Ouvrir le flux caméra en direct</a>
+      </div>
     </div>
 
     <div class="sensors-grid">
@@ -171,30 +177,21 @@
 
   function deconnecter() { localStorage.clear(); window.location.href = '/'; }
 
-  // Charge la vidéo via le proxy (sans URL configurable)
   function loadVideoUrl() {
     const img = document.getElementById('live-video');
-    if (img) {
-        img.src = '/api/camera-proxy';
-    }
+    if (img) img.src = '/api/camera-proxy';
   }
 
-  // Sauvegarde l'URL (optionnel, mais le proxy reste utilisé)
   function saveVideoUrl() {
     const url = document.getElementById('video-url').value;
     localStorage.setItem('video_url', url);
     const img = document.getElementById('live-video');
-    if (img) {
-        img.src = '/api/camera-proxy';
-    }
+    if (img) img.src = '/api/camera-proxy';
   }
 
-  // Rafraîchissement périodique de la vidéo
   setInterval(() => {
     const img = document.getElementById('live-video');
-    if (img && img.src) {
-        img.src = '/api/camera-proxy?t=' + Date.now();
-    }
+    if (img && img.src) img.src = '/api/camera-proxy?t=' + Date.now();
   }, 500);
 
   setInterval(() => { chargerDonnees(); document.getElementById('sync-info').innerHTML = `🔄 Dernière synchronisation ${new Date().toLocaleTimeString('fr-FR')}`; }, 5000);
