@@ -70,10 +70,10 @@
       <div class="stat-card"><div class="stat-value" id="stat-alertes-temp">0</div><div class="stat-label">Alertes température</div></div>
     </div>
 
-    <!-- VIDÉO EN PERMANENCE -->
+    <!-- VIDÉO VIA PROXY -->
     <div class="card">
       <div class="card-title" style="font-size:0.7rem; text-transform:uppercase; color:#8a9bb5; margin-bottom:0.5rem"><i class="fas fa-video"></i> VIDÉO ESP32-CAM</div>
-      <img id="live-video" class="video-frame" src="" alt="Flux vidéo">
+      <img id="live-video" class="video-frame" src="/api/camera-proxy" alt="Flux vidéo">
     </div>
 
     <div class="sensors-grid">
@@ -163,15 +163,39 @@
   }
 
   async function chargerStats() { const stats = await fetchAPI('/api/statistiques'); if (stats) { document.getElementById('stat-incendies').innerText = stats.incendie || 0; document.getElementById('stat-alertes-gaz').innerText = stats.gaz || 0; document.getElementById('stat-alertes-temp').innerText = stats.temp || 0; } }
-  async function chargerHistorique() { const data = await fetchAPI('/api/historique'); if (data && data.length) { historiqueData = data; const tbody = document.getElementById('history-body'); tbody.innerHTML = ''; data.slice(0, 30).forEach(d => { const date = new Date(d.date_heure).toLocaleString('fr-FR'); const temp = d.temperature?.toFixed(1); const flamme = d.flamme === 1 || d.flamme === true; let badgeClass = flamme ? 'badge-danger' : (d.gaz >= 500 || d.temperature >= 50) ? 'badge-warning' : 'badge-ok'; let badgeText = flamme ? 'INCENDIE' : (d.gaz >= 500 || d.temperature >= 50) ? 'ALERTE' : 'NORMAL'; tbody.innerHTML += `<tr><td style="color:#8a9bb5">${date}</td><td><strong>${temp}°C</strong></td><td>${d.gaz}</td><td>${flamme ? '🔥 OUI' : '🟢 NON'}</td><td><span class="badge ${badgeClass}">${badgeText}</span></td></tr>`; }); const maxTemp = Math.max(...data.map(d => d.temperature)); document.getElementById('stat-temp-max').innerText = maxTemp ? maxTemp.toFixed(1) + '°' : '--'; updateCharts(data); } }
+  async function chargerHistorique() { const data = await fetchAPI('/api/historique'); if (data && data.length) { historiqueData = data; const tbody = document.getElementById('history-body'); tbody.innerHTML = ''; data.slice(0, 30).forEach(d => { const date = new Date(d.date_heure).toLocaleString('fr-FR'); const temp = d.temperature?.toFixed(1); const flamme = d.flamme === 1 || d.flamme === true; let badgeClass = flamme ? 'badge-danger' : (d.gaz >= 500 || d.temperature >= 50) ? 'badge-warning' : 'badge-ok'; let badgeText = flamme ? 'INCENDIE' : (d.gaz >= 500 || d.temperature >= 50) ? 'ALERTE' : 'NORMAL'; tbody.innerHTML += `<tr><td style="color:#8a9bb5">${date}</td>}<strong>${temp}°C</strong></td>}<td>${d.gaz}</td>}<td>${flamme ? '🔥 OUI' : '🟢 NON'}</td>}<td><span class="badge ${badgeClass}">${badgeText}</span></td></tr>`; }); const maxTemp = Math.max(...data.map(d => d.temperature)); document.getElementById('stat-temp-max').innerText = maxTemp ? maxTemp.toFixed(1) + '°' : '--'; updateCharts(data); } }
 
   function updateCharts(data) { const rev = [...data].reverse().slice(-30); const labels = rev.map(d => new Date(d.date_heure).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})); const temps = rev.map(d => d.temperature); const gazs = rev.map(d => d.gaz); if (tempChart) tempChart.destroy(); if (gazChart) gazChart.destroy(); tempChart = new Chart(document.getElementById('tempChart'), { type: 'line', data: { labels, datasets: [{ label: 'Température (°C)', data: temps, borderColor: '#e65c00', backgroundColor: 'rgba(230,92,0,0.1)', fill: true, tension: 0.3 }] } }); gazChart = new Chart(document.getElementById('gazChart'), { type: 'line', data: { labels, datasets: [{ label: 'Gaz (ppm)', data: gazs, borderColor: '#f9a825', backgroundColor: 'rgba(249,168,37,0.1)', fill: true, tension: 0.3 }] } }); }
 
   function exportCSV() { if (!historiqueData.length) return; let csv = "Date,Heure,Température,Gaz,Flamme,Statut\n"; historiqueData.forEach(d => { const date = new Date(d.date_heure).toLocaleDateString('fr-FR'); const time = new Date(d.date_heure).toLocaleTimeString('fr-FR'); const flamme = d.flamme === 1 || d.flamme === true; const statut = flamme ? 'INCENDIE' : (d.gaz >= 500 || d.temperature >= 50) ? 'ALERTE' : 'NORMAL'; csv += `${date},${time},${d.temperature},${d.gaz},${flamme ? 'OUI' : 'NON'},${statut}\n`; }); const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `sidirt_export_${new Date().toISOString().slice(0,10)}.csv`; link.click(); }
 
   function deconnecter() { localStorage.clear(); window.location.href = '/'; }
-  function loadVideoUrl() { const url = localStorage.getItem('video_url'); if (url) { document.getElementById('video-url').value = url; document.getElementById('live-video').src = url; } }
-  function saveVideoUrl() { const url = document.getElementById('video-url').value; localStorage.setItem('video_url', url); if (url) document.getElementById('live-video').src = url; }
+
+  // Charge la vidéo via le proxy (sans URL configurable)
+  function loadVideoUrl() {
+    const img = document.getElementById('live-video');
+    if (img) {
+        img.src = '/api/camera-proxy';
+    }
+  }
+
+  // Sauvegarde l'URL (optionnel, mais le proxy reste utilisé)
+  function saveVideoUrl() {
+    const url = document.getElementById('video-url').value;
+    localStorage.setItem('video_url', url);
+    const img = document.getElementById('live-video');
+    if (img) {
+        img.src = '/api/camera-proxy';
+    }
+  }
+
+  // Rafraîchissement périodique de la vidéo
+  setInterval(() => {
+    const img = document.getElementById('live-video');
+    if (img && img.src) {
+        img.src = '/api/camera-proxy?t=' + Date.now();
+    }
+  }, 500);
 
   setInterval(() => { chargerDonnees(); document.getElementById('sync-info').innerHTML = `🔄 Dernière synchronisation ${new Date().toLocaleTimeString('fr-FR')}`; }, 5000);
   chargerDonnees(); loadVideoUrl();
