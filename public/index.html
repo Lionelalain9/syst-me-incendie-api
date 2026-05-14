@@ -5,358 +5,62 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#e65c00">
   <title>SIDIRT — Système Intelligent de Détection d'Incendie</title>
-  <!-- Fonts & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: radial-gradient(ellipse at top, #1a1a2e, #0a0a14);
-      color: #ffffff;
-      min-height: 100vh;
-    }
-
-    /* Animations */
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes pulseGlow {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(230,92,0,0.3); }
-      50% { box-shadow: 0 0 0 6px rgba(230,92,0,0); }
-    }
-
-    .glass {
-      background: rgba(20, 20, 35, 0.65);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 28px;
-      transition: all 0.2s ease;
-    }
-
-    .glass:hover {
-      border-color: rgba(230,92,0,0.3);
-      transform: translateY(-2px);
-    }
-
-    /* Header */
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px 40px;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
-      background: rgba(10, 10, 20, 0.5);
-      backdrop-filter: blur(10px);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .logo-icon {
-      font-size: 32px;
-      filter: drop-shadow(0 0 12px rgba(230,92,0,0.6));
-      animation: pulseGlow 2s infinite;
-    }
-
-    .logo h1 {
-      font-size: 1.6rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #ffffff, #e65c00, #ffaa44);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .logo span {
-      font-size: 0.7rem;
-      color: #8a9bb5;
-      letter-spacing: 1.5px;
-      display: block;
-    }
-
-    .user-area {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .user-badge {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 8px 18px;
-      background: rgba(255,255,255,0.04);
-      border-radius: 100px;
-    }
-
-    .avatar {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, #e65c00, #ff8c42);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 1rem;
-    }
-
-    .btn-logout {
-      background: rgba(230,92,0,0.15);
-      border: 1px solid rgba(230,92,0,0.3);
-      padding: 8px 20px;
-      border-radius: 40px;
-      color: #ffaa66;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-weight: 500;
-    }
-
-    .btn-logout:hover {
-      background: rgba(230,92,0,0.5);
-      color: white;
-      border-color: #e65c00;
-    }
-
-    /* Container */
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 32px 40px;
-      animation: fadeInUp 0.6s ease-out;
-    }
-
-    /* Stats */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 24px;
-      margin-bottom: 40px;
-    }
-
-    .stat-card {
-      padding: 24px 20px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .stat-icon {
-      font-size: 28px;
-      color: #e65c00;
-      margin-bottom: 16px;
-    }
-
-    .stat-value {
-      font-size: 2.6rem;
-      font-weight: 800;
-      margin-bottom: 6px;
-    }
-
-    .stat-label {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #8a9bb5;
-    }
-
-    /* Sensors */
-    .section-title {
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: #e65c00;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .sensors-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      margin-bottom: 40px;
-    }
-
-    .sensor-card {
-      padding: 28px 20px;
-      text-align: center;
-      border-left: 3px solid transparent;
-    }
-
-    .sensor-card.warning {
-      border-left-color: #f9a825;
-      background: rgba(249,168,37,0.08);
-    }
-
-    .sensor-card.danger {
-      border-left-color: #ff3d00;
-      background: rgba(255,61,0,0.1);
-      box-shadow: 0 0 20px rgba(255,61,0,0.2);
-    }
-
-    .sensor-icon {
-      font-size: 36px;
-      color: #e65c00;
-      margin-bottom: 16px;
-    }
-
-    .sensor-value {
-      font-size: 3rem;
-      font-weight: 800;
-      margin: 12px 0;
-    }
-
-    .sensor-unit {
-      font-size: 1rem;
-      font-weight: 400;
-      color: #8a9bb5;
-    }
-
-    .sensor-status {
-      font-size: 0.8rem;
-      font-weight: 600;
-      padding: 6px 16px;
-      border-radius: 30px;
-      display: inline-block;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: radial-gradient(ellipse at top, #1a1a2e, #0a0a14); color: #ffffff; min-height: 100vh; }
+    .glass { background: rgba(20, 20, 35, 0.65); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 28px; transition: all 0.2s ease; }
+    .glass:hover { border-color: rgba(230,92,0,0.3); transform: translateY(-2px); }
+    .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; border-bottom: 1px solid rgba(255,255,255,0.04); background: rgba(10, 10, 20, 0.5); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; }
+    .logo { display: flex; align-items: center; gap: 14px; }
+    .logo-icon { font-size: 32px; filter: drop-shadow(0 0 12px rgba(230,92,0,0.6)); animation: pulseGlow 2s infinite; }
+    @keyframes pulseGlow { 0%, 100% { text-shadow: 0 0 5px rgba(230,92,0,0.5); } 50% { text-shadow: 0 0 15px rgba(230,92,0,0.8); } }
+    .logo h1 { font-size: 1.6rem; font-weight: 800; background: linear-gradient(135deg, #ffffff, #e65c00, #ffaa44); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .logo span { font-size: 0.7rem; color: #8a9bb5; letter-spacing: 1.5px; display: block; }
+    .user-area { display: flex; align-items: center; gap: 20px; }
+    .user-badge { display: flex; align-items: center; gap: 12px; padding: 8px 18px; background: rgba(255,255,255,0.04); border-radius: 100px; }
+    .avatar { width: 40px; height: 40px; background: linear-gradient(135deg, #e65c00, #ff8c42); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+    .btn-logout { background: rgba(230,92,0,0.15); border: 1px solid rgba(230,92,0,0.3); padding: 8px 20px; border-radius: 40px; color: #ffaa66; cursor: pointer; transition: all 0.2s; font-weight: 500; }
+    .btn-logout:hover { background: rgba(230,92,0,0.5); color: white; border-color: #e65c00; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 32px 40px; animation: fadeInUp 0.6s ease-out; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 40px; }
+    .stat-card { padding: 24px 20px; }
+    .stat-icon { font-size: 28px; color: #e65c00; margin-bottom: 16px; }
+    .stat-value { font-size: 2.6rem; font-weight: 800; margin-bottom: 6px; }
+    .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #8a9bb5; }
+    .section-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; color: #e65c00; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+    .sensors-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 40px; }
+    .sensor-card { padding: 28px 20px; text-align: center; border-left: 3px solid transparent; }
+    .sensor-card.warning { border-left-color: #f9a825; background: rgba(249,168,37,0.08); }
+    .sensor-card.danger { border-left-color: #ff3d00; background: rgba(255,61,0,0.1); }
+    .sensor-icon { font-size: 36px; color: #e65c00; margin-bottom: 16px; }
+    .sensor-value { font-size: 3rem; font-weight: 800; margin: 12px 0; }
+    .sensor-unit { font-size: 1rem; font-weight: 400; color: #8a9bb5; }
+    .sensor-status { font-size: 0.8rem; font-weight: 600; padding: 6px 16px; border-radius: 30px; display: inline-block; }
     .status-ok { background: rgba(0,230,118,0.12); color: #00e676; border: 1px solid rgba(0,230,118,0.3); }
     .status-warning { background: rgba(249,168,37,0.12); color: #f9a825; border: 1px solid rgba(249,168,37,0.3); }
-    .status-danger { background: rgba(255,61,0,0.15); color: #ff3d00; border: 1px solid rgba(255,61,0,0.5); animation: pulseGlow 1.5s infinite; }
-
-    /* Charts */
-    .charts-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 24px;
-      margin-bottom: 40px;
-    }
-
-    .chart-card {
-      padding: 20px;
-    }
-
-    .chart-title {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: #8a9bb5;
-      margin-bottom: 20px;
-    }
-
-    canvas {
-      max-height: 260px;
-    }
-
-    /* History */
-    .history-card {
-      padding: 24px;
-    }
-
-    .history-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th {
-      text-align: left;
-      padding: 14px 12px;
-      font-weight: 600;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #8a9bb5;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-
-    td {
-      padding: 14px 12px;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
-      font-size: 0.85rem;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 4px 14px;
-      border-radius: 30px;
-      font-size: 0.7rem;
-      font-weight: 600;
-    }
-
+    .status-danger { background: rgba(255,61,0,0.15); color: #ff3d00; border: 1px solid rgba(255,61,0,0.5); }
+    .charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 40px; }
+    .chart-card { padding: 20px; }
+    .chart-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: #8a9bb5; margin-bottom: 20px; }
+    canvas { max-height: 260px; }
+    .history-card { padding: 24px; }
+    .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 14px 12px; font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #8a9bb5; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    td { padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.85rem; }
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 30px; font-size: 0.7rem; font-weight: 600; }
     .badge-ok { background: rgba(0,230,118,0.15); color: #00e676; border: 1px solid rgba(0,230,118,0.2); }
     .badge-warning { background: rgba(249,168,37,0.15); color: #f9a825; border: 1px solid rgba(249,168,37,0.2); }
     .badge-danger { background: rgba(255,61,0,0.2); color: #ff3d00; border: 1px solid #ff3d00; }
-
-    .btn-csv {
-      background: linear-gradient(135deg, #e65c00, #ff8c42);
-      border: none;
-      padding: 10px 24px;
-      border-radius: 40px;
-      color: white;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 0.8rem;
-      transition: all 0.2s;
-    }
-
-    .btn-csv:hover {
-      transform: scale(1.02);
-      box-shadow: 0 4px 12px rgba(230,92,0,0.4);
-    }
-
-    .sync-info {
-      text-align: right;
-      font-size: 0.65rem;
-      color: #5a6e8a;
-      margin-top: 16px;
-      font-family: monospace;
-    }
-
-    /* Loading */
-    .loading {
-      text-align: center;
-      padding: 40px;
-      color: #8a9bb5;
-    }
-
-    @media (max-width: 900px) {
-      .stats-grid, .sensors-grid, .charts-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      .container { padding: 20px; }
-      .header { padding: 16px 20px; flex-wrap: wrap; gap: 12px; }
-    }
-
-    @media (max-width: 600px) {
-      .stats-grid, .sensors-grid, .charts-grid {
-        grid-template-columns: 1fr;
-      }
-      .stat-value { font-size: 2rem; }
-    }
+    .btn-csv { background: linear-gradient(135deg, #e65c00, #ff8c42); border: none; padding: 10px 24px; border-radius: 40px; color: white; cursor: pointer; font-weight: 600; font-size: 0.8rem; transition: all 0.2s; }
+    .btn-csv:hover { transform: scale(1.02); box-shadow: 0 4px 12px rgba(230,92,0,0.4); }
+    .sync-info { text-align: right; font-size: 0.65rem; color: #5a6e8a; margin-top: 16px; font-family: monospace; }
+    @media (max-width: 900px) { .stats-grid, .sensors-grid, .charts-grid { grid-template-columns: repeat(2, 1fr); } .container { padding: 20px; } .header { padding: 16px 20px; flex-wrap: wrap; gap: 12px; } }
+    @media (max-width: 600px) { .stats-grid, .sensors-grid, .charts-grid { grid-template-columns: 1fr; } .stat-value { font-size: 2rem; } }
   </style>
 </head>
 <body>
@@ -364,16 +68,10 @@
 <div class="header">
   <div class="logo">
     <i class="fas fa-fire logo-icon"></i>
-    <div>
-      <h1>SIDIRT</h1>
-      <span>SYSTÈME INTELLIGENT DE DÉTECTION D'INCENDIE</span>
-    </div>
+    <div><h1>SIDIRT</h1><span>SYSTÈME INTELLIGENT DE DÉTECTION D'INCENDIE</span></div>
   </div>
   <div class="user-area">
-    <div class="user-badge">
-      <div class="avatar" id="user-avatar">U</div>
-      <span id="user-name">Utilisateur</span>
-    </div>
+    <div class="user-badge"><div class="avatar" id="user-avatar">U</div><span id="user-name">Utilisateur</span></div>
     <button class="btn-logout" onclick="deconnexion()">Déconnexion</button>
   </div>
 </div>
@@ -401,7 +99,7 @@
 
   <div class="history-card glass">
     <div class="history-header"><span><i class="fas fa-database"></i> Dernières mesures enregistrées</span><button class="btn-csv" onclick="exporterCSV()"><i class="fas fa-download"></i> Exporter CSV</button></div>
-    <table id="history-table"><thead>$\<th>Date/Heure</th><th>Température</th><th>Gaz</th><th>Flamme</th><th>Statut</th></tr></thead><tbody id="history-body"><tr><td colspan="5"><div class="loading">Chargement des données...</div></td></tr></tbody></table>
+    <table id="history-table"><thead><tr><th>Date/Heure</th><th>Température</th><th>Gaz</th><th>Flamme</th><th>Statut</th></tr></thead><tbody id="history-body"><tr><td colspan="5"><div style="text-align:center;padding:20px;">Chargement...</div></td></tr></tbody></table>
   </div>
   <div class="sync-info" id="sync-info">🔄 Dernière synchronisation --:--:--</div>
 </div>
@@ -418,9 +116,11 @@
   document.getElementById('user-avatar').innerText = (user.nom?.charAt(0) || 'U').toUpperCase();
 
   async function requeteAPI(endpoint) {
-    const res = await fetch(API_URL + endpoint, { headers: { 'Authorization': 'Bearer ' + token } });
-    if (res.status === 401) { deconnexion(); return null; }
-    return res.json();
+    try {
+      const res = await fetch(API_URL + endpoint, { headers: { 'Authorization': 'Bearer ' + token } });
+      if (res.status === 401) { deconnexion(); return null; }
+      return await res.json();
+    } catch(e) { console.error("Erreur API:", e); return null; }
   }
 
   async function chargerDonnees() {
@@ -461,7 +161,7 @@
       if (historiqueData.length) {
         const maxTemp = Math.max(...historiqueData.map(d => d.temperature));
         document.getElementById('stat-temp-max').innerText = maxTemp ? maxTemp.toFixed(1) + '°' : '--';
-      }
+      } else { document.getElementById('stat-temp-max').innerText = '--'; }
     }
   }
 
@@ -480,6 +180,8 @@
         tbody.innerHTML += `<tr><td style="color:#8a9bb5">${date}</td><td><strong>${temp}°C</strong></td><td>${d.gaz}</td><td>${flamme ? '🔥 OUI' : '🟢 NON'}</td><td><span class="badge ${badgeClass}">${badgeText}</span></td></tr>`;
       });
       mettreAJourGraphiques(data);
+    } else {
+      document.getElementById('history-body').innerHTML = '<tr><td colspan="5"><div style="text-align:center;padding:20px;">Aucune donnée</div></td></tr>';
     }
   }
 
@@ -511,14 +213,8 @@
     link.click();
   }
 
-  function deconnexion() {
-    localStorage.clear();
-    window.location.href = '/';
-  }
-
-  function updateSyncTime() {
-    document.getElementById('sync-info').innerHTML = `🔄 Dernière synchronisation ${new Date().toLocaleTimeString('fr-FR')}`;
-  }
+  function deconnexion() { localStorage.clear(); window.location.href = '/'; }
+  function updateSyncTime() { document.getElementById('sync-info').innerHTML = `🔄 Dernière synchronisation ${new Date().toLocaleTimeString('fr-FR')}`; }
 
   setInterval(() => { chargerDonnees(); updateSyncTime(); }, 4000);
   chargerDonnees();
