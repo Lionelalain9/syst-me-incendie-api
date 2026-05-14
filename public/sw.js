@@ -14,13 +14,20 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  // IGNORER LA CAMÉRA (ne pas intercepter, ne pas cacher)
+  if (e.request.url.includes('10.76.24.100') || e.request.url.includes('/api/camera-proxy')) {
+    // Laisser le navigateur gérer normalement
+    return;
+  }
+
   // Pour l'API → réseau d'abord, fallback cache
-  if (e.request.url.includes('onrender.com')) {
+  if (e.request.url.includes('onrender.com') && !e.request.url.includes('/api/camera-proxy')) {
     e.respondWith(
       fetch(e.request).catch(() => caches.match(e.request))
     );
     return;
   }
+
   // Pour les assets → cache d'abord
   e.respondWith(
     caches.match(e.request).then(r => r || fetch(e.request))
