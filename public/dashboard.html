@@ -26,7 +26,6 @@
     .status-warning { background: rgba(249,168,37,0.15); color: #f9a825; }
     .status-danger { background: rgba(255,61,0,0.2); color: #ff3d00; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
-    .video-frame { width: 100%; border-radius: 20px; border: 2px solid #e65c00; background: #000; min-height: 240px; }
     .nav-bar { display: flex; gap: 0.5rem; background: rgba(17,24,39,0.6); border-radius: 60px; padding: 0.3rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
     .nav-btn { flex: 1; padding: 0.6rem; background: transparent; border: none; border-radius: 40px; color: #8a9bb5; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .nav-btn.active { background: #e65c00; color: white; }
@@ -43,8 +42,8 @@
     .toggle.active::after { left: 22px; }
     .btn-csv { background: linear-gradient(135deg, #e65c00, #ff8c42); border: none; padding: 0.5rem 1rem; border-radius: 30px; color: white; cursor: pointer; }
     .sync-info { text-align: center; font-size: 0.7rem; color: #8a9bb5; margin-top: 1rem; }
-    .camera-link { text-align: center; margin-top: 0.5rem; }
-    .camera-link a { color: #e65c00; text-decoration: none; font-weight: bold; background: rgba(230,92,0,0.1); padding: 0.3rem 1rem; border-radius: 30px; display: inline-block; gap: 5px; transition: 0.2s; }
+    .camera-link { text-align: center; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+    .camera-link a { color: #e65c00; text-decoration: none; font-weight: bold; background: rgba(230,92,0,0.1); padding: 0.5rem 1rem; border-radius: 30px; display: inline-block; gap: 8px; transition: 0.2s; }
     .camera-link a:hover { background: rgba(230,92,0,0.3); transform: scale(1.02); }
     @media (max-width: 768px) { .stats-grid, .sensors-grid { grid-template-columns: 1fr; } .nav-btn span { display: none; } }
   </style>
@@ -73,12 +72,15 @@
       <div class="stat-card"><div class="stat-value" id="stat-alertes-temp">0</div><div class="stat-label">Alertes température</div></div>
     </div>
 
-    <!-- VIDÉO -->
+    <!-- LIEN CAMÉRA (sans cadre vidéo) -->
     <div class="card">
-      <div class="card-title" style="font-size:0.7rem; text-transform:uppercase; color:#8a9bb5; margin-bottom:0.5rem"><i class="fas fa-video"></i> VIDÉO ESP32-CAM</div>
-      <img id="live-video" class="video-frame" src="/api/camera-proxy" alt="Flux vidéo">
+      <div class="card-title" style="font-size:0.7rem; text-transform:uppercase; color:#8a9bb5; margin-bottom:0.5rem">
+        <i class="fas fa-video"></i> VIDÉO ESP32-CAM
+      </div>
       <div class="camera-link">
-        <a href="http://10.76.24.100:81/stream" target="_blank"><i class="fas fa-external-link-alt"></i> Ouvrir le flux caméra en direct</a>
+        <a href="http://10.76.24.100:81/stream" target="_blank">
+          <i class="fas fa-external-link-alt"></i> Ouvrir le flux caméra en direct
+        </a>
       </div>
     </div>
 
@@ -177,25 +179,8 @@
 
   function deconnecter() { localStorage.clear(); window.location.href = '/'; }
 
-  function loadVideoUrl() {
-    const img = document.getElementById('live-video');
-    if (img) img.src = '/api/camera-proxy';
-  }
-
-  function saveVideoUrl() {
-    const url = document.getElementById('video-url').value;
-    localStorage.setItem('video_url', url);
-    const img = document.getElementById('live-video');
-    if (img) img.src = '/api/camera-proxy';
-  }
-
-  setInterval(() => {
-    const img = document.getElementById('live-video');
-    if (img && img.src) img.src = '/api/camera-proxy?t=' + Date.now();
-  }, 500);
-
   setInterval(() => { chargerDonnees(); document.getElementById('sync-info').innerHTML = `🔄 Dernière synchronisation ${new Date().toLocaleTimeString('fr-FR')}`; }, 5000);
-  chargerDonnees(); loadVideoUrl();
+  chargerDonnees();
 </script>
 </body>
 </html>
