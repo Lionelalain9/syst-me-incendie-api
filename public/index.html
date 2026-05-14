@@ -1,311 +1,383 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="night">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#e65c00">
   <title>SIDIRT — Système Intelligent de Détection d'Incendie</title>
+  <!-- Fonts & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    /* Thèmes */
-    [data-theme="night"] { --bg: linear-gradient(135deg, #0f0c1f, #1a1a2e); --surface: rgba(255,255,255,0.05); --border: rgba(255,255,255,0.08); --text: #f0f0f0; --muted: #8a9bb5; --accent: #e65c00; }
-    [data-theme="dark"] { --bg: linear-gradient(135deg, #0c0a06, #1a1208); --surface: rgba(255,255,255,0.04); --border: rgba(255,255,255,0.06); --text: #f5e6d0; --muted: #7a5c38; --accent: #e65c00; }
-    [data-theme="light"] { --bg: linear-gradient(135deg, #e0e7ff, #f0f4f8); --surface: rgba(0,0,0,0.03); --border: rgba(0,0,0,0.1); --text: #1e293b; --muted: #64748b; --accent: #e65c00; }
-    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
       font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      background: linear-gradient(135deg, #0f0c1f 0%, #1a1a2e 100%);
+      color: #f0f0f0;
       min-height: 100vh;
-      transition: background 0.3s, color 0.3s;
     }
-    
+
+    /* Glassmorphism effect */
     .glass {
-      background: var(--surface);
+      background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(12px);
-      border: 1px solid var(--border);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 24px;
-      transition: all 0.2s;
     }
-    
+
     /* Header */
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 20px 32px;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
     }
-    .logo-icon { font-size: 28px; filter: drop-shadow(0 0 8px rgba(230,92,0,0.5)); }
-    .logo h1 { font-size: 1.4rem; font-weight: 700; background: linear-gradient(135deg, #fff, #e65c00); -webkit-background-clip: text; background-clip: text; color: transparent; }
-    .logo span { font-size: 0.7rem; color: var(--muted); }
-    .user-badge { display: flex; align-items: center; gap: 10px; padding: 8px 16px; background: var(--surface); border-radius: 40px; border: 1px solid var(--border); }
-    .avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #e65c00, #ff8c42); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-    .btn-logout { background: rgba(230,92,0,0.15); border: 1px solid rgba(230,92,0,0.3); padding: 8px 18px; border-radius: 30px; color: #ffaa66; cursor: pointer; transition: all 0.2s; }
-    .btn-logout:hover { background: rgba(230,92,0,0.5); color: white; }
-    
-    /* Container & Layout */
-    .container { max-width: 1400px; margin: 0 auto; padding: 24px 32px; }
-    .sensors-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 32px; }
-    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 32px; }
-    .charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 32px; }
-    .history-card { padding: 20px; overflow-x: auto; }
-    .sensor-card { padding: 24px; text-align: center; border-left: 3px solid transparent; transition: all 0.2s; }
-    .sensor-card.warning { border-left-color: #f9a825; background: rgba(249,168,37,0.08); }
-    .sensor-card.danger { border-left-color: #ff3d00; background: rgba(255,61,0,0.1); box-shadow: 0 0 16px rgba(255,61,0,0.2); }
-    .sensor-value { font-size: 2.8rem; font-weight: 700; margin: 12px 0; }
-    .sensor-unit { font-size: 1rem; font-weight: normal; color: var(--muted); }
-    .sensor-status { font-size: 0.8rem; font-weight: 500; padding: 4px 12px; border-radius: 20px; display: inline-block; }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      font-size: 28px;
+      filter: drop-shadow(0 0 8px rgba(230,92,0,0.5));
+    }
+
+    .logo h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #fff, #e65c00);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .logo span {
+      font-size: 0.75rem;
+      color: #7a8caa;
+      letter-spacing: 1px;
+    }
+
+    .user-area {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .user-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 40px;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #e65c00, #ff8c42);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .btn-logout {
+      background: rgba(255,255,255,0.08);
+      border: none;
+      padding: 8px 18px;
+      border-radius: 30px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover {
+      background: rgba(230,92,0,0.8);
+    }
+
+    /* Main container */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px 32px;
+    }
+
+    /* Stats cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      padding: 20px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+    }
+
+    .stat-icon {
+      font-size: 28px;
+      color: #e65c00;
+      margin-bottom: 12px;
+    }
+
+    .stat-value {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: #8a9bb5;
+      letter-spacing: 0.5px;
+    }
+
+    /* Sensors grid */
+    .sensors-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .sensor-card {
+      padding: 24px;
+      text-align: center;
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+    }
+
+    .sensor-card.warning {
+      border-left-color: #f9a825;
+      background: rgba(249,168,37,0.08);
+    }
+
+    .sensor-card.danger {
+      border-left-color: #ff3d00;
+      background: rgba(255,61,0,0.08);
+      box-shadow: 0 0 16px rgba(255,61,0,0.2);
+    }
+
+    .sensor-value {
+      font-size: 2.8rem;
+      font-weight: 700;
+      margin: 12px 0;
+    }
+
+    .sensor-unit {
+      font-size: 1rem;
+      font-weight: normal;
+      color: #8a9bb5;
+    }
+
+    .sensor-status {
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+
     .status-ok { background: rgba(0,230,118,0.15); color: #00e676; }
     .status-warning { background: rgba(249,168,37,0.15); color: #f9a825; }
     .status-danger { background: rgba(255,61,0,0.2); color: #ff3d00; animation: pulse 1.5s infinite; }
-    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
-    
-    .stat-card { padding: 20px; transition: transform 0.2s; }
-    .stat-card:hover { transform: translateY(-4px); }
-    .stat-value { font-size: 2.2rem; font-weight: 700; margin-bottom: 4px; }
-    .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
-    .chart-card { padding: 20px; }
-    canvas { max-height: 260px; }
-    
-    /* Vidéo */
-    .video-card { padding: 16px; margin-bottom: 20px; text-align: center; }
-    .video-frame { width: 100%; border-radius: 16px; border: 2px solid var(--accent); background: #000; min-height: 240px; }
-    
-    /* Table */
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
-    .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    /* Charts */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .chart-card {
+      padding: 20px;
+    }
+
+    .chart-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #8a9bb5;
+      margin-bottom: 16px;
+    }
+
+    canvas {
+      max-height: 260px;
+    }
+
+    /* History */
+    .history-card {
+      padding: 20px;
+      overflow-x: auto;
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      text-align: left;
+      padding: 12px;
+      color: #8a9bb5;
+      font-weight: 500;
+      font-size: 0.75rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.85rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
     .badge-ok { background: rgba(0,230,118,0.2); color: #00e676; }
     .badge-warning { background: rgba(249,168,37,0.2); color: #f9a825; }
     .badge-danger { background: rgba(255,61,0,0.2); color: #ff3d00; }
-    
-    /* Navigation */
-    nav { display: flex; justify-content: space-around; background: var(--surface); border-top: 1px solid var(--border); padding: 12px 0; margin-top: 24px; border-radius: 20px; }
-    .nav-btn { background: none; border: none; color: var(--muted); font-size: 0.8rem; font-weight: 600; cursor: pointer; padding: 8px 20px; border-radius: 30px; transition: all 0.2s; }
-    .nav-btn.active { background: var(--accent); color: white; }
-    
-    /* Réglages */
-    .settings-card { padding: 20px; margin-bottom: 20px; }
-    .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
-    .theme-selector { display: flex; gap: 12px; }
-    .theme-btn { padding: 6px 14px; border-radius: 30px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; color: var(--text); }
-    .theme-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-    .toggle { position: relative; width: 48px; height: 24px; background: var(--muted); border-radius: 30px; cursor: pointer; transition: 0.2s; }
-    .toggle.active { background: var(--accent); }
-    .toggle::after { content: ''; position: absolute; width: 20px; height: 20px; background: white; border-radius: 50%; top: 2px; left: 4px; transition: 0.2s; }
-    .toggle.active::after { left: 24px; }
-    .video-url-input { width: 100%; padding: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; color: var(--text); margin-top: 8px; }
-    
-    .btn-csv { background: linear-gradient(135deg, #e65c00, #ff8c42); border: none; padding: 8px 20px; border-radius: 30px; color: white; cursor: pointer; font-weight: 600; }
-    .sync-info { text-align: center; font-size: 0.7rem; color: var(--muted); margin-top: 16px; }
-    
-    .page { display: none; }
-    .page.active { display: block; }
-    
-    @media (max-width: 900px) {
-      .stats-grid, .sensors-grid, .charts-grid { grid-template-columns: repeat(2, 1fr); }
-      .container { padding: 16px; }
+
+    .btn-csv {
+      background: linear-gradient(135deg, #e65c00, #ff8c42);
+      border: none;
+      padding: 8px 20px;
+      border-radius: 30px;
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 0.2s;
     }
+
+    .btn-csv:hover {
+      transform: scale(1.02);
+    }
+
+    .sync-info {
+      text-align: center;
+      font-size: 0.7rem;
+      color: #5a6e8a;
+      margin-top: 24px;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .stats-grid, .sensors-grid, .charts-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .container { padding: 16px; }
+      .header { flex-direction: column; gap: 16px; }
+    }
+
     @media (max-width: 600px) {
-      .stats-grid, .sensors-grid, .charts-grid { grid-template-columns: 1fr; }
+      .stats-grid, .sensors-grid, .charts-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
-<body data-theme="night">
+<body>
 
 <div class="header">
   <div class="logo">
     <i class="fas fa-fire logo-icon"></i>
-    <div><h1>SIDIRT</h1><span>Système Intelligent de Détection d'Incendie</span></div>
+    <div>
+      <h1>SIDIRT</h1>
+      <span>Système Intelligent de Détection d'Incendie</span>
+    </div>
   </div>
   <div class="user-area">
-    <div class="user-badge"><div class="avatar" id="user-avatar">U</div><span id="user-name">Utilisateur</span></div>
+    <div class="user-badge">
+      <div class="avatar" id="user-avatar">U</div>
+      <span id="user-name">Utilisateur</span>
+    </div>
     <button class="btn-logout" onclick="deconnexion()">Déconnexion</button>
   </div>
 </div>
 
 <div class="container">
-  
-  <!-- PAGE ACCUEIL -->
-  <div id="page-home" class="page active">
-    <div class="stats-grid">
-      <div class="stat-card glass"><div class="stat-icon"><i class="fas fa-thermometer-half"></i></div><div class="stat-value" id="stat-temp-max">--</div><div class="stat-label">Température max</div></div>
-      <div class="stat-card glass"><div class="stat-icon"><i class="fas fa-fire"></i></div><div class="stat-value" id="stat-incendies">0</div><div class="stat-label">Incendies</div></div>
-      <div class="stat-card glass"><div class="stat-icon"><i class="fas fa-smog"></i></div><div class="stat-value" id="stat-alertes-gaz">0</div><div class="stat-label">Alertes gaz</div></div>
-      <div class="stat-card glass"><div class="stat-icon"><i class="fas fa-temperature-high"></i></div><div class="stat-value" id="stat-alertes-temp">0</div><div class="stat-label">Alertes température</div></div>
-    </div>
-    
-    <div class="video-card glass" id="video-section" style="display:none;">
-      <div class="chart-title"><i class="fas fa-video"></i> Flux vidéo ESP32-CAM</div>
-      <img id="live-video" class="video-frame" src="" alt="Flux vidéo">
-    </div>
-    
-    <div class="sensors-grid">
-      <div class="sensor-card glass" id="card-temp"><i class="fas fa-thermometer-half" style="font-size:28px;color:var(--accent);"></i><div class="sensor-value" id="temp-value">--<span class="sensor-unit">°C</span></div><div id="temp-status" class="sensor-status status-ok">Normal</div></div>
-      <div class="sensor-card glass" id="card-gaz"><i class="fas fa-smog" style="font-size:28px;color:var(--accent);"></i><div class="sensor-value" id="gaz-value">--</div><div id="gaz-status" class="sensor-status status-ok">Normal</div></div>
-      <div class="sensor-card glass" id="card-flamme"><i class="fas fa-fire" style="font-size:28px;color:var(--accent);"></i><div class="sensor-value" id="flamme-value">🟢</div><div id="flamme-status" class="sensor-status status-ok">Aucune flamme</div></div>
-    </div>
+  <!-- Stats cards -->
+  <div class="stats-grid">
+    <div class="stat-card glass"><div class="stat-icon"><i class="fas fa-thermometer-half"></i></div><div class="stat-value" id="stat-temp-max">--</div><div class="stat-label">Température max</div></div>
+    <div class="stat-card glass"><div class="stat-icon"><i class="fas fa-fire"></i></div><div class="stat-value" id="stat-incendies">0</div><div class="stat-label">Incendies détectés</div></div>
+    <div class="stat-card glass"><div class="stat-icon"><i class="fas fa-smog"></i></div><div class="stat-value" id="stat-alertes-gaz">0</div><div class="stat-label">Alertes gaz</div></div>
+    <div class="stat-card glass"><div class="stat-icon"><i class="fas fa-temperature-high"></i></div><div class="stat-value" id="stat-alertes-temp">0</div><div class="stat-label">Alertes température</div></div>
   </div>
-  
-  <!-- PAGE GRAPHIQUES -->
-  <div id="page-charts" class="page">
-    <div class="charts-grid">
-      <div class="chart-card glass"><div class="chart-title">📈 Évolution température (°C)</div><canvas id="tempChart"></canvas></div>
-      <div class="chart-card glass"><div class="chart-title">📊 Niveau gaz (ppm)</div><canvas id="gazChart"></canvas></div>
-    </div>
+
+  <!-- Capteurs -->
+  <div class="sensors-grid">
+    <div class="sensor-card glass" id="card-temp"><i class="fas fa-thermometer-half" style="font-size: 28px; color: #ff8c42;"></i><div class="sensor-value" id="temp-value">--<span class="sensor-unit">°C</span></div><div id="temp-status" class="sensor-status status-ok">Normal</div></div>
+    <div class="sensor-card glass" id="card-gaz"><i class="fas fa-smog" style="font-size: 28px; color: #ff8c42;"></i><div class="sensor-value" id="gaz-value">--</div><div id="gaz-status" class="sensor-status status-ok">Normal</div></div>
+    <div class="sensor-card glass" id="card-flamme"><i class="fas fa-fire" style="font-size: 28px; color: #ff8c42;"></i><div class="sensor-value" id="flamme-value">🟢</div><div id="flamme-status" class="sensor-status status-ok">Aucune flamme</div></div>
   </div>
-  
-  <!-- PAGE HISTORIQUE -->
-  <div id="page-history" class="page">
-    <div class="history-card glass">
-      <div class="history-header" style="display:flex; justify-content:space-between; margin-bottom:16px;">
-        <span><i class="fas fa-history"></i> Historique des mesures</span>
-        <button class="btn-csv" onclick="exporterCSV()"><i class="fas fa-download"></i> Export CSV</button>
-      </div>
-      <table><thead><tr><th>Date/Heure</th><th>Température</th><th>Gaz</th><th>Flamme</th><th>Statut</th></tr></thead><tbody id="history-body"><tr><td colspan="5">Chargement...</td></tr></tbody></table>
-    </div>
+
+  <!-- Graphiques -->
+  <div class="charts-grid">
+    <div class="chart-card glass"><div class="chart-title"><i class="fas fa-chart-line"></i> Évolution température (°C)</div><canvas id="tempChart"></canvas></div>
+    <div class="chart-card glass"><div class="chart-title"><i class="fas fa-chart-line"></i> Niveau gaz (ppm)</div><canvas id="gazChart"></canvas></div>
   </div>
-  
-  <!-- PAGE RÉGLAGES -->
-  <div id="page-settings" class="page">
-    <div class="settings-card glass">
-      <div class="chart-title">🎨 Thème d'affichage</div>
-      <div class="theme-selector">
-        <button class="theme-btn" data-theme="night">🌙 Nuit</button>
-        <button class="theme-btn" data-theme="dark">🔥 Sombre</button>
-        <button class="theme-btn" data-theme="light">☀️ Clair</button>
-      </div>
-    </div>
-    
-    <div class="settings-card glass">
-      <div class="chart-title">🔔 Notifications</div>
-      <div class="setting-row">
-        <span>Activer les alertes incendie</span>
-        <div id="notif-toggle" class="toggle" onclick="toggleNotifications()"></div>
-      </div>
-    </div>
-    
-    <div class="settings-card glass">
-      <div class="chart-title">📹 Transmission vidéo (ESP32-CAM)</div>
-      <div class="setting-row" style="flex-direction:column; align-items:flex-start;">
-        <span>URL du flux MJPEG</span>
-        <input type="text" id="video-url-input" class="video-url-input" placeholder="http://192.168.1.100:81/stream">
-        <button class="btn-csv" style="margin-top:12px;" onclick="saveVideoUrl()">💾 Sauvegarder</button>
-      </div>
-    </div>
-    
-    <div class="settings-card glass">
-      <div class="chart-title">ℹ️ À propos</div>
-      <div class="setting-row"><span>Version</span><span>SIDIRT PWA v2.0</span></div>
-      <div class="setting-row"><span>API</span><span>sdi-api-0fsx.onrender.com</span></div>
-    </div>
+
+  <!-- Historique -->
+  <div class="history-card glass">
+    <div class="history-header"><span><i class="fas fa-history"></i> Historique des mesures</span><button class="btn-csv" onclick="exporterCSV()"><i class="fas fa-download"></i> Exporter CSV</button></div>
+    <table id="history-table"><thead><tr><th>Date/Heure</th><th>Température</th><th>Gaz</th><th>Flamme</th><th>Statut</th></tr></thead><tbody id="history-body"><tr><td colspan="5">Chargement...</td></tr></tbody></table>
   </div>
-  
-  <nav>
-    <button class="nav-btn active" data-page="home">🏠 ACCUEIL</button>
-    <button class="nav-btn" data-page="charts">📈 GRAPHIQUES</button>
-    <button class="nav-btn" data-page="history">📋 HISTORIQUE</button>
-    <button class="nav-btn" data-page="settings">⚙️ RÉGLAGES</button>
-  </nav>
-  
   <div class="sync-info" id="sync-info">🔄 Synchronisation...</div>
 </div>
 
 <script>
-  const API_URL = 'https://sdi-api-0fsx.onrender.com';
+  const API_URL = '';
   let token = localStorage.getItem('sdi_token');
   let user = JSON.parse(localStorage.getItem('sdi_user') || '{}');
   let tempChart, gazChart, historiqueData = [];
-  let notificationsEnabled = localStorage.getItem('notifications') === 'true';
-  let videoInterval;
-  
+
   if (!token) window.location.href = '/';
-  
+
   document.getElementById('user-name').innerText = user.nom || 'Utilisateur';
   document.getElementById('user-avatar').innerText = (user.nom?.charAt(0) || 'U').toUpperCase();
-  
-  // Navigation
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-      const page = btn.getAttribute('data-page');
-      document.getElementById(`page-${page}`).classList.add('active');
-      if (page === 'charts' && historiqueData.length) mettreAJourGraphiques(historiqueData);
-    });
-  });
-  
-  // Thème
-  const setTheme = (theme) => {
-    document.body.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-    document.querySelectorAll('.theme-btn').forEach(btn => {
-      if (btn.getAttribute('data-theme') === theme) btn.classList.add('active');
-      else btn.classList.remove('active');
-    });
-  };
-  const savedTheme = localStorage.getItem('theme') || 'night';
-  setTheme(savedTheme);
-  document.querySelectorAll('.theme-btn').forEach(btn => {
-    btn.addEventListener('click', () => setTheme(btn.getAttribute('data-theme')));
-  });
-  
-  // Notifications
-  const toggleNotifications = () => {
-    notificationsEnabled = !notificationsEnabled;
-    localStorage.setItem('notifications', notificationsEnabled);
-    const toggle = document.getElementById('notif-toggle');
-    if (notificationsEnabled) toggle.classList.add('active');
-    else toggle.classList.remove('active');
-  };
-  document.getElementById('notif-toggle').classList.toggle('active', notificationsEnabled);
-  
-  const sendNotification = (title, body) => {
-    if (notificationsEnabled && Notification.permission === 'granted') {
-      new Notification(title, { body, icon: '/favicon.ico' });
-    } else if (notificationsEnabled && Notification.permission !== 'denied') {
-      Notification.requestPermission();
-    }
-  };
-  
-  // Vidéo
-  const loadVideoUrl = () => {
-    const url = localStorage.getItem('video_url');
-    if (url) {
-      document.getElementById('video-url-input').value = url;
-      document.getElementById('live-video').src = url;
-      document.getElementById('video-section').style.display = 'block';
-      if (videoInterval) clearInterval(videoInterval);
-      videoInterval = setInterval(() => {
-        const vid = document.getElementById('live-video');
-        if (vid && vid.src) vid.src = localStorage.getItem('video_url') + '?t=' + Date.now();
-      }, 2000);
-    }
-  };
-  const saveVideoUrl = () => {
-    const url = document.getElementById('video-url-input').value;
-    localStorage.setItem('video_url', url);
-    if (url) {
-      document.getElementById('live-video').src = url;
-      document.getElementById('video-section').style.display = 'block';
-    } else {
-      document.getElementById('video-section').style.display = 'none';
-      if (videoInterval) clearInterval(videoInterval);
-    }
-  };
-  
+
   async function requeteAPI(endpoint) {
     const res = await fetch(API_URL + endpoint, { headers: { 'Authorization': 'Bearer ' + token } });
     if (res.status === 401) { deconnexion(); return null; }
     return res.json();
   }
-  
+
   async function chargerDonnees() {
     const dernier = await requeteAPI('/api/dernieres-donnees');
     if (dernier && dernier.id) {
@@ -314,60 +386,55 @@
       const flamme = dernier.flamme === 1 || dernier.flamme === true;
       document.getElementById('temp-value').innerHTML = temp + '<span class="sensor-unit">°C</span>';
       document.getElementById('gaz-value').innerText = gaz;
-      
+
       const tempStatus = document.getElementById('temp-status');
       const gazStatus = document.getElementById('gaz-status');
       const flammeStatus = document.getElementById('flamme-status');
       const flammeValue = document.getElementById('flamme-value');
-      
+
       if (temp >= 50) { tempStatus.innerText = '⚠️ DANGER CRITIQUE'; tempStatus.className = 'sensor-status status-danger'; document.getElementById('card-temp').classList.add('danger'); }
       else if (temp >= 40) { tempStatus.innerText = '⚡ Température élevée'; tempStatus.className = 'sensor-status status-warning'; document.getElementById('card-temp').classList.add('warning'); }
       else { tempStatus.innerText = '✅ Normale'; tempStatus.className = 'sensor-status status-ok'; document.getElementById('card-temp').classList.remove('warning','danger'); }
-      
+
       if (gaz >= 500) { gazStatus.innerText = '⚠️ FUITE DÉTECTÉE'; gazStatus.className = 'sensor-status status-danger'; document.getElementById('card-gaz').classList.add('danger'); }
       else if (gaz >= 300) { gazStatus.innerText = '⚡ Niveau élevé'; gazStatus.className = 'sensor-status status-warning'; document.getElementById('card-gaz').classList.add('warning'); }
       else { gazStatus.innerText = '✅ Normal'; gazStatus.className = 'sensor-status status-ok'; document.getElementById('card-gaz').classList.remove('warning','danger'); }
-      
-      if (flamme) {
-        flammeValue.innerHTML = '🔥'; flammeStatus.innerText = '🔥 FLAMME DÉTECTÉE !'; flammeStatus.className = 'sensor-status status-danger';
-        document.getElementById('card-flamme').classList.add('danger');
-        sendNotification('🚨 ALERTE INCENDIE', `Température: ${temp}°C | Gaz: ${gaz}`);
-      } else {
-        flammeValue.innerHTML = '🟢'; flammeStatus.innerText = 'Aucune flamme'; flammeStatus.className = 'sensor-status status-ok';
-        document.getElementById('card-flamme').classList.remove('danger');
-      }
+
+      if (flamme) { flammeValue.innerHTML = '🔥🔥'; flammeStatus.innerText = '🔥 FLAMME DÉTECTÉE !'; flammeStatus.className = 'sensor-status status-danger'; document.getElementById('card-flamme').classList.add('danger'); }
+      else { flammeValue.innerHTML = '🟢'; flammeStatus.innerText = 'Aucune flamme'; flammeStatus.className = 'sensor-status status-ok'; document.getElementById('card-flamme').classList.remove('danger'); }
     }
     chargerHistorique();
     chargerStatistiques();
   }
-  
+
   async function chargerStatistiques() {
     const stats = await requeteAPI('/api/statistiques');
     if (stats) {
+      document.getElementById('stat-temp-max').innerText = stats.temp_max ? stats.temp_max + '°' : '--';
       document.getElementById('stat-incendies').innerText = stats.incendie || 0;
       document.getElementById('stat-alertes-gaz').innerText = stats.gaz || 0;
       document.getElementById('stat-alertes-temp').innerText = stats.temp || 0;
     }
   }
-  
+
   async function chargerHistorique() {
     const data = await requeteAPI('/api/historique');
     if (data && data.length) {
       historiqueData = data;
       const tbody = document.getElementById('history-body');
       tbody.innerHTML = '';
-      data.slice(0, 30).forEach(d => {
+      data.slice(0, 20).forEach(d => {
         const date = new Date(d.date_heure).toLocaleString('fr-FR');
         const temp = d.temperature?.toFixed(1);
         const flamme = d.flamme === 1 || d.flamme === true;
         let badgeClass = flamme ? 'badge-danger' : (d.gaz >= 500 || d.temperature >= 50) ? 'badge-warning' : 'badge-ok';
         let badgeText = flamme ? 'INCENDIE' : (d.gaz >= 500 || d.temperature >= 50) ? 'ALERTE' : 'NORMAL';
-        tbody.innerHTML += `<tr><td style="color:var(--muted)">${date}</td><td><strong>${temp}°C</strong></td><td>${d.gaz}</td><td>${flamme ? '🔥 OUI' : '🟢 NON'}</td><td><span class="badge ${badgeClass}">${badgeText}</span></td></tr>`;
+        tbody.innerHTML += `<tr><td>${date}</td><td>${temp}°C</td><td>${d.gaz}</td><td>${flamme ? '🔥 OUI' : '🟢 NON'}</td><td><span class="badge ${badgeClass}">${badgeText}</span></td></tr>`;
       });
       mettreAJourGraphiques(data);
     }
   }
-  
+
   function mettreAJourGraphiques(data) {
     const reversed = data.slice().reverse().slice(-30);
     const labels = reversed.map(d => new Date(d.date_heure).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}));
@@ -378,7 +445,7 @@
     tempChart = new Chart(document.getElementById('tempChart'), { type: 'line', data: { labels, datasets: [{ label: 'Température (°C)', data: temps, borderColor: '#e65c00', backgroundColor: 'rgba(230,92,0,0.1)', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: true } });
     gazChart = new Chart(document.getElementById('gazChart'), { type: 'line', data: { labels, datasets: [{ label: 'Gaz (ppm)', data: gazs, borderColor: '#f9a825', backgroundColor: 'rgba(249,168,37,0.1)', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: true } });
   }
-  
+
   function exporterCSV() {
     if (!historiqueData.length) return;
     let csv = "Date,Heure,Température,Gaz,Flamme,Statut\n";
@@ -395,12 +462,14 @@
     link.download = `sidirt_export_${new Date().toISOString().slice(0,10)}.csv`;
     link.click();
   }
-  
-  function deconnexion() { localStorage.clear(); window.location.href = '/'; }
-  
-  setInterval(() => { chargerDonnees(); document.getElementById('sync-info').innerHTML = `🔄 Dernière synchronisation ${new Date().toLocaleTimeString('fr-FR')}`; }, 5000);
+
+  function deconnexion() {
+    localStorage.clear();
+    window.location.href = '/';
+  }
+
+  setInterval(() => { chargerDonnees(); document.getElementById('sync-info').innerHTML = '🔄 Sync : ' + new Date().toLocaleTimeString(); }, 4000);
   chargerDonnees();
-  loadVideoUrl();
 </script>
 </body>
 </html>
