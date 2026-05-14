@@ -205,6 +205,25 @@ app.get('/api/statistiques', authMiddleware, async (req, res) => {
     } catch (err) { res.status(500).json({ erreur: 'Erreur serveur.' }); }
 });
 
+// ============================================================
+//   PROXY POUR ESP32-CAM (évite le Mixed Content HTTPS/HTTP)
+// ============================================================
+app.get('/api/camera-proxy', async (req, res) => {
+    try {
+        const cameraUrl = 'http://10.76.24.100:81/stream';
+        const response = await fetch(cameraUrl);
+        const contentType = response.headers.get('content-type');
+        if (contentType) {
+            res.set('Content-Type', contentType);
+        }
+        const buffer = Buffer.from(await response.arrayBuffer());
+        res.send(buffer);
+    } catch (error) {
+        console.error('Erreur proxy caméra:', error.message);
+        res.status(500).json({ error: 'Caméra indisponible', details: error.message });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`🚀 Serveur SDI démarré sur http://localhost:${PORT}`);
     console.log(`🔐 JWT activé`);
